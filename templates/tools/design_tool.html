@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Smart Design & Planning Tool</h2>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <label for="sunlight">Sunlight (hours/day):</label>
+  <input type="number" name="sunlight" id="sunlight" required>
+
+  <label for="airflow">Airflow (cfm):</label>
+  <input type="number" name="airflow" id="airflow" required>
+
+  <label for="size">Building Size (sq. meters):</label>
+  <input type="number" name="size" id="size" required>
+
+  <label for="energy_budget">Energy Budget (kWh/year):</label>
+  <input type="number" name="energy_budget" id="energy_budget" required>
+
+  <button type="submit" class="btn btn-primary mt-3">Generate Design Suggestions</button>
+</form>
+
+{% if design_suggestion %}
+    <div class="row">
+      <!-- Passive Design Strategies -->
+      <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow">
+          <div class="card-header bg-success text-white">
+            Passive Design Strategies
+          </div>
+          <div class="card-body">
+            <ul>
+              {% for item in design_suggestion.passive_design_strategies %}
+                <li>{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommended Materials -->
+      <div class="col-md-6 mb-4">
+        <div class="card h-100 shadow">
+          <div class="card-header bg-info text-white">
+            Recommended Materials
+          </div>
+          <div class="card-body">
+            <ul>
+              {% for material in design_suggestion.recommended_materials %}
+                <li><strong>{{ material.name }}:</strong> {{ material.reason }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Energy Efficiency Tips -->
+      <div class="col-md-12 mb-4">
+        <div class="card shadow">
+          <div class="card-header bg-warning">
+            Energy Efficiency Tips
+          </div>
+          <div class="card-body">
+            <ul>
+              {% for tip in design_suggestion.energy_efficiency_tips %}
+                <li>{{ tip }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Notes -->
+      <div class="col-md-12">
+        <div class="card shadow">
+          <div class="card-header bg-secondary text-white">
+            Additional Notes
+          </div>
+          <div class="card-body">
+            <p>{{ design_suggestion.additional_notes }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+<a class="btn btn-secondary mt-3" href="{% url 'dashboard' %}">← Back to Dashboard</a>
+
+{% endblock %}

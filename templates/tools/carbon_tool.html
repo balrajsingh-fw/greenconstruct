@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Carbon Tracking & Reporting Tool</h2>
+
+<form method="POST">
+  {% csrf_token %}
+
+  <label for="material">Select Material:</label>
+  <select name="material" id="material" required>
+    {% for material in materials %}
+      <option value="{{ material.id }}">{{ material.name }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="quantity">Enter Quantity (kg):</label>
+  <input type="number" name="quantity" id="quantity" required>
+
+  <button type="submit" class="btn btn-primary mt-3">Calculate Carbon Emission</button>
+</form>
+
+{% if carbon_emission %}
+  <h3>Results:</h3>
+  <p>Material: {{ material.name }}</p>
+  <p>Quantity: {{ quantity }} kg</p>
+  <p>Carbon Emission: {{ carbon_emission }} kg CO2</p>
+  <p>Our Insight: {{insight.insight}}</p>
+{% endif %}
+
+<a href="{% url 'dashboard' %}" class="btn btn-secondary">Go Back to Dashboard</a>
+{% endblock %}

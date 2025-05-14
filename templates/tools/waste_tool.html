@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Waste Reduction & Forecasting Tool</h2>
+
+  <form method="POST" class="mb-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary mt-2">Forecast Waste</button>
+  </form>
+
+  {% if predicted_waste %}
+    <div class="card shadow mt-4">
+      <div class="card-header bg-warning">
+        Waste Forecast Result
+      </div>
+      <div class="card-body">
+        <p><strong>Material:</strong> {{ material.name }}</p>
+        <p><strong>Construction Method:</strong> {{ construction_method|title }}</p>
+        <p><strong>Project Phase:</strong> {{ project_phase|title }}</p>
+        <p><strong>Climate Zone:</strong> {{ climate|title }}</p>
+        <p><strong>Predicted Waste:</strong> {{ predicted_waste|floatformat:2 }} sq ft</p>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if ai_result %}
+    <div class="card shadow mt-4">
+      <div class="card-header bg-success text-white">
+        AI Waste Reduction Insights
+      </div>
+      <div class="card-body">
+        <p>{{ ai_result.forecast_summary }}</p>
+        <h5>Tips to Reduce Waste:</h5>
+        <ul>
+          {% for tip in ai_result.waste_reduction_tips %}
+            <li>{{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card-body">
+        <h5>Predicted waste in Kgs</h5>
+        <p>{{ ai_result.predicted_waste_kg }}</p>
+        <p>Reason Behind Expected Wastage: {{ai_result.reason_for_wastage}}</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Back to Dashboard</a>
+</div>
+{% endblock %}

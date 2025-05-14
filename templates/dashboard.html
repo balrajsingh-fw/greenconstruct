@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-grid gap-3 col-6 mx-auto">
+    <a class="btn btn-primary" href="{% url 'carbon_tool' %}">1. Carbon Tracking & Reporting</a>
+    <a class="btn btn-success" href="{% url 'waste_tool' %}">2. Construction Waste Reduction</a>
+    <a class="btn btn-warning" href="{% url 'design_tool' %}">3. Smart Design & Planning</a>
+</div>
+{% endblock %}

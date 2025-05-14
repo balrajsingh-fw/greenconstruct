@@ -1,0 +1,21 @@
+Material Name,Scientific Formula,CO2 Intensity (kg CO2 per kg of material)
+Concrete,SiO2 + CaO + H2O,0.9
+Steel,Fe + C,1.8
+Wood,C6H12O6,0.3
+Glass,SiO2,0.75
+Aluminum,Al,8.0
+Brick,SiO2 + Al2O3 + Fe2O3,0.45
+Copper,Cu,3.5
+Gypsum,CaSO4·2H2O,0.4
+Cement,CaO + SiO2 + Al2O3 + Fe2O3,0.8
+Plaster,CaSO4·2H2O,0.3
+Insulation (Fiberglass),SiO2 + Al2O3 + B2O3,1.0
+Polyurethane Foam,C25H42N2O,2.5
+PVC (Polyvinyl Chloride),C2H3Cl,3.0
+Asphalt,C24H50,2.1
+Stone,SiO2 + Al2O3 + Fe2O3,0.6
+Timber,C6H10O5,0.4
+Ceramic,SiO2 + Al2O3 + Na2O,0.55
+Recycled Concrete Aggregate,SiO2 + CaO + H2O,0.3
+Marble,CaCO3,0.6
+Granite,SiO2 + Al2O3 + Fe2O3,0.45
