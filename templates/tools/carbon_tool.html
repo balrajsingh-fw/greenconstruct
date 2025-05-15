@@ -1,31 +1,80 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Carbon Tracking & Reporting Tool</h2>
+<div class="container mt-4">
+  <h2>Carbon Tracking & Reporting Tool</h2>
 
-<form method="POST">
-  {% csrf_token %}
+  <form method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
 
-  <label for="material">Select Material:</label>
-  <select name="material" id="material" required>
-    {% for material in materials %}
-      <option value="{{ material.id }}">{{ material.name }}</option>
-    {% endfor %}
-  </select>
+    <div id="formset-container">
+      {% for form in formset %}
+        <div class="border p-3 mb-3 rounded shadow-sm bg-light">
+          <div class="form-group">
+            {{ form.material.label_tag }} {{ form.material }}
+          </div>
+          <div class="form-group">
+            {{ form.quantity.label_tag }} {{ form.quantity }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
 
-  <label for="quantity">Enter Quantity (kg):</label>
-  <input type="number" name="quantity" id="quantity" required>
+    <button type="button" class="btn btn-secondary mb-3" onclick="addForm()">➕ Add Material</button><br>
+    <button type="submit" class="btn btn-primary">Calculate Carbon Emissions</button>
+  </form>
 
-  <button type="submit" class="btn btn-primary mt-3">Calculate Carbon Emission</button>
-</form>
+  {% if ai_result %}
+    <hr>
+    <h4 class="mt-4 text-success">🌍 Total Carbon Emission: <strong>{{ ai_result.total_emission }}</strong> kg CO₂</h4>
 
-{% if carbon_emission %}
-  <h3>Results:</h3>
-  <p>Material: {{ material.name }}</p>
-  <p>Quantity: {{ quantity }} kg</p>
-  <p>Carbon Emission: {{ carbon_emission }} kg CO2</p>
-  <p>Our Insight: {{insight.insight}}</p>
-{% endif %}
+    <div class="row">
+      {% for item in ai_result.materials %}
+        <div class="col-md-6 mb-4">
+          <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+              {{ item.material }} – {{ item.quantity }} kg
+            </div>
+            <div class="card-body">
+              <p><strong>Emission:</strong> {{ item.emission }} kg CO₂</p>
+              <p><strong>Per Unit:</strong> {{ item.emission_per_unit }} kg CO₂/unit</p>
+              <p><strong>Environmental Impact:</strong> {{ item.environmental_impact }}</p>
 
-<a href="{% url 'dashboard' %}" class="btn btn-secondary">Go Back to Dashboard</a>
+              <h6 class="mt-3">🌱 <strong>Recommended Alternatives:</strong></h6>
+              <ul>
+                {% for alt in item.alternatives %}
+                  <li>
+                    <strong>{{ alt.material }}</strong>: {{ alt.description }}<br>
+                    <em>Emission Factor:</em> {{ alt.emission_factor }}<br>
+                    <em>Considerations:</em> {{ alt.considerations }}
+                  </li>
+                {% endfor %}
+              </ul>
+
+              <p><strong>Recommendations:</strong> {{ item.recommendations }}</p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="alert alert-info mt-4">
+      <strong>📊 Overall Insight:</strong> {{ ai_result.summary_insight }}
+    </div>
+  {% endif %}
+
+  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Back to Dashboard</a>
+</div>
+
+<script>
+  function addForm() {
+    const container = document.getElementById('formset-container');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    const currentFormCount = parseInt(totalForms.value);
+    const emptyFormHtml = container.children[0].outerHTML.replace(/form-0/g, `form-${currentFormCount}`);
+    container.insertAdjacentHTML('beforeend', emptyFormHtml);
+    totalForms.value = currentFormCount + 1;
+  }
+</script>
 {% endblock %}

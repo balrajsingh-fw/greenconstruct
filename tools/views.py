@@ -1,59 +1,84 @@
 import json
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.forms import formset_factory
 from .models import Material
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-import openpyxl
-from .forms import CarbonTrackingForm, WasteReductionForm, DesignPlanningForm
+from .forms import *
 import google.generativeai as genai
 
+MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
 
 def carbon_tool(request):
+    MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
     if request.method == 'POST':
-        material_id = request.POST['material']
-        quantity = float(request.POST['quantity'])
+        formset = MaterialFormSet(request.POST)
+        if formset.is_valid():
+            total_emission = 0
+            breakdown = []
 
-        # Retrieve the material from the database
-        material = Material.objects.get(id=material_id)
+            for form in formset:
+                material = form.cleaned_data.get('material')
+                quantity = form.cleaned_data.get('quantity')
 
-        # Calculate carbon emissions
-        carbon_emission = material.co2_intensity * quantity
+                if material and quantity:
+                    emission = material.co2_intensity * quantity
+                    total_emission += emission
+                    breakdown.append({
+                        'material': material.name,
+                        'quantity': quantity,
+                        'emission': round(emission, 2),
+                    })
 
-        ai_insight = generate_carbon_footprint_insight(material,
-                                                       quantity,
-                                                       carbon_emission)
-
-        # Display the result on the page
-        return render(request, 'tools/carbon_tool.html', {
-            'material': material,
-            'quantity': quantity,
-            'carbon_emission': carbon_emission,
-            'insight': ai_insight
-        })
-
+            insight = generate_carbon_footprint_insight(breakdown, total_emission)  # or your own function
+            return render(request, 'tools/carbon_tool.html', {
+                'formset': formset,
+                'total_emission': round(total_emission, 2),
+                'breakdown': breakdown,
+                'ai_result': insight,
+            })
+    else:
+        formset = MaterialFormSet()
     # If GET request, display the form
     materials = Material.objects.all()
-    return render(request, 'tools/carbon_tool.html', {'materials': materials})
+    return render(request, 'tools/carbon_tool.html', {'materials': materials,
+                                                      'formset': formset})
 
 
-def generate_carbon_footprint_insight(material, quantity, carbon_emission):
+def generate_carbon_footprint_insight(breakdown, total_emission):
     prompt = (
-        "Based on the following material, quantity and carbon emission data "
-        "provide valuable insights for alternatives and effect of using this "
-        "quantity of material on environment, also suggest what other materials "
-        "can be used instead of the provided material of given amount:"
-        "Provide output in json format and do not add any other comments."
-        f"- Material: {material.name}"
-        f"- Quantity in Kgs: {quantity}%"
-        f"- Carbon Emission: {carbon_emission}"
+        "You are an AI sustainability assistant analyzing carbon emissions from construction materials. "
+        "You are given a list of materials, each with a name, quantity used (in kg), and total carbon emissions (in kg CO2). "
+        "For each material, provide detailed insights about its environmental impact and suggest sustainable alternatives. "
+        "Also include a total emission summary and a high-level insight for the overall material usage."
 
-        """Respond only in JSON with:
-        {
-          "insight": ...,
-        }
-        """)
+        "\n\nRespond ONLY in the following JSON format and include nothing else:\n"
+        """{
+          "materials": [
+            {
+              "material": "string",
+              "quantity": float,
+              "emission": float,
+              "emission_per_unit": float,
+              "environmental_impact": "string",
+              "alternatives": [
+                {
+                  "material": "string",
+                  "description": "string",
+                  "emission_factor": "string or float",
+                  "considerations": "string"
+                }
+              ],
+              "recommendations": "string"
+            }
+          ],
+          "total_emission": float,
+          "summary_insight": "string"
+        }"""
+
+        "\n\nHere is the input data of materials with their quantities and emissions:\n"
+        f"{breakdown}, with total emission: {total_emission}.\n"
+        "Only return the valid JSON response as described above."
+    )
     chat_session = create_gemini_model()
     response = chat_session.send_message(prompt)
 

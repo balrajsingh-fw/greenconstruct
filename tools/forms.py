@@ -1,6 +1,10 @@
 from django import forms
 from .models import Material
 
+class MaterialQuantityForm(forms.Form):
+    material = forms.ModelChoiceField(queryset=Material.objects.all(), label="Material")
+    quantity = forms.FloatField(label="Quantity (kg)")
+
 class CarbonTrackingForm(forms.Form):
     material = forms.ModelChoiceField(queryset=Material.objects.all(), label='Select Material', empty_label="Choose a material")
     material_quantity = forms.FloatField(label='Quantity (in kg)')
