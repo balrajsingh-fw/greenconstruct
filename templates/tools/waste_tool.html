@@ -2,6 +2,7 @@
 {% block content %}
 <div class="container mt-4">
   <h2>Waste Reduction & Forecasting Tool</h2>
+  <p><strong>Material:</strong> {{ material }}</p>
 
   <form method="POST" class="mb-4">
     {% csrf_token %}
@@ -15,7 +16,6 @@
         Waste Forecast Result
       </div>
       <div class="card-body">
-        <p><strong>Material:</strong> {{ material.name }}</p>
         <p><strong>Construction Method:</strong> {{ construction_method|title }}</p>
         <p><strong>Project Phase:</strong> {{ project_phase|title }}</p>
         <p><strong>Climate Zone:</strong> {{ climate|title }}</p>
@@ -45,7 +45,5 @@
       </div>
     </div>
   {% endif %}
-
-  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Back to Dashboard</a>
 </div>
 {% endblock %}

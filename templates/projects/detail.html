@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Project: {{ project.name }}</h2>
+
+  {% if project.current_step == 4 %}
+    <p class="text-success"><strong>✅ Analysis Completed</strong></p>
+  {% else %}
+    <p>Status: Step {{ project.current_step }} of 3</p>
+  {% endif %}
+
+  <div class="steps-container">
+
+    {% if project.carbon_insight %}
+      <div class="step-box">
+        <h4>Step 1: Carbon Insight</h4>
+        {% include "tools/carbon_result.html" with breakdown=project.carbon_data insight=project.carbon_insight %}
+      </div>
+    {% endif %}
+
+    {% if project.waste_insight %}
+      <div class="step-box">
+        <h4>Step 2: Waste Insight</h4>
+        {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
+      </div>
+    {% endif %}
+
+    {% if project.design_insight %}
+      <div class="step-box">
+        <h4>Step 3: Design Insight</h4>
+        {% include "tools/design_result.html" with result=project.design_insight %}
+      </div>
+    {% endif %}
+
+    {% if project.current_step == 4 %}
+      <div class="step-box active">
+        <h4>Final Combined Analysis</h4>
+        <p>{{ project.combined_insight }}</p>
+        <!-- Forecasting Trends -->
+        <div class="row mt-5">
+          <div class="col-md-12">
+            <h5>Forecasting Trends</h5>
+            <canvas id="forecastChart" style="max-width: 700px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Metrics Summary -->
+        <div class="row mt-5">
+          <div class="col-md-6">
+            <h5>Graph Metrics Summary</h5>
+            <canvas id="metricsChart" style="max-width: 700px;"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Back to Dashboard</a>
+</div>
+
+<style>
+  .steps-container {
+    max-width: 1000px;
+    margin: 30px auto;
+  }
+  .step-box {
+    border: 2px solid #ccc;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    background: #f9f9f9;
+  }
+  .step-box.active {
+    border-color: #007bff;
+    background: #eaf3ff;
+  }
+</style>
+{{ project.combined_forecasting|json_script:"forecast-data" }}
+{{ project.graph_metrics|json_script:"metrics-data" }}
+<script>
+  {% if project.current_step == 4 %}
+  const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
+  const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
+
+  // Forecasting Trends Line Chart
+  const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+  new Chart(forecastCtx, {
+    type: 'line',
+    data: {
+      labels: forecastData.carbon_emission_trend.map(d => d.year),
+      datasets: [
+        {
+          label: 'Carbon Emissions (kg CO₂)',
+          data: forecastData.carbon_emission_trend.map(d => d.emission),
+          borderColor: '#36A2EB',
+          backgroundColor: 'rgba(54,162,235,0.2)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Waste (kg)',
+          data: forecastData.waste_trend.map(d => d.waste),
+          borderColor: '#FF6384',
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Energy Efficiency (%)',
+          data: forecastData.energy_efficiency_trend.map(d => d.score),
+          borderColor: '#4BC0C0',
+          backgroundColor: 'rgba(75,192,192,0.2)',
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Metrics Bar Chart
+  const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+  new Chart(metricsCtx, {
+    type: 'bar',
+    data: {
+      labels: [
+        'Total Carbon Emission',
+        'Predicted Waste (kg)',
+        'Energy Efficiency (%)',
+        'Sustainability Score'
+      ],
+      datasets: [{
+        label: 'Project Summary Metrics',
+        data: [
+          metrics.total_carbon_emission,
+          metrics.predicted_waste_kg,
+          metrics.energy_efficiency_score,
+          metrics.sustainability_recommendation_score
+        ],
+        backgroundColor: [
+          '#36A2EB',
+          '#FF6384',
+          '#4BC0C0',
+          '#FFCE56'
+        ]
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      scales: {
+        x: { beginAtZero: true }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true }
+      }
+    }
+  });
+  {% endif %}
+</script>
+{% endblock %}

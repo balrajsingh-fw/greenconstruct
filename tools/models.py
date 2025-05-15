@@ -9,3 +9,27 @@ class Material(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Project(models.Model):
+    name = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    current_step = models.PositiveSmallIntegerField(default=1)
+
+    # Store raw data and AI insights as JSON
+    carbon_data = models.JSONField(null=True, blank=True)
+    carbon_insight = models.JSONField(null=True, blank=True)
+
+    waste_data = models.JSONField(null=True, blank=True)
+    waste_insight = models.JSONField(null=True, blank=True)
+
+    design_data = models.JSONField(null=True, blank=True)
+    design_insight = models.JSONField(null=True, blank=True)
+
+    combined_insight = models.TextField(null=True, blank=True)
+    graph_metrics = models.JSONField(null=True, blank=True)
+    combined_forecasting = models.JSONField(null=True, blank=True)  # 👈 Add this
+
+    def __int__(self):
+        return self.id

@@ -1,0 +1,31 @@
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-success text-white">
+    <h5 class="mb-0">🌿 Design Optimization Results</h5>
+  </div>
+  <div class="card-body">
+    <h6 class="text-muted">📐 Input Parameters:</h6>
+    <ul>
+      <li><strong>Sunlight Exposure:</strong> {{ project.design_data.sunlight }} hours/day</li>
+      <li><strong>Airflow Efficiency:</strong> {{ project.design_data.airflow }} m³/h</li>
+      <li><strong>Building Size:</strong> {{ project.design_data.size }} m²</li>
+      <li><strong>Energy Budget:</strong> {{ project.design_data.energy_budget }} kWh</li>
+    </ul>
+
+    <hr>
+
+    <h6 class="text-muted">🧠 AI-Generated Insight:</h6>
+    <div class="alert alert-info">
+      {{ project.design_insight|linebreaks }}
+    </div>
+
+    {% if project.graph_metrics %}
+      <hr>
+      <h6 class="text-muted">📊 Key Design Metrics:</h6>
+      <ul>
+        {% for metric, value in project.graph_metrics.items %}
+          <li><strong>{{ metric|capfirst }}:</strong> {{ value }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+</div>

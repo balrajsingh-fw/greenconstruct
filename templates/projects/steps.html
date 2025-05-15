@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Project: {{ project.id }}</h2>
+<h3>Step {{ step }} of 3</h3>
+
+<div class="steps-container">
+
+  <!-- Step 1: Carbon Tool -->
+  <div class="step-box {% if step >= 1 %}active{% else %}disabled{% endif %}">
+    <h4>Step 1: Carbon Tool</h4>
+    {% if step == 1 %}
+      {% include "tools/carbon_tool.html" with formset=carbon_formset %}
+    {% elif step > 1 %}
+      {% include "tools/carbon_result.html" with breakdown=project.carbon_data total=project.total_emission insight=project.carbon_insight %}
+    {% else %}
+      <p>Complete Step 1 to unlock this section</p>
+    {% endif %}
+  </div>
+
+  <!-- Step 2: Waste Tool -->
+  <div class="step-box {% if step >= 2 %}active{% else %}disabled{% endif %}">
+    <h4>Step 2: Waste Tool</h4>
+    {% if step == 2 %}
+      {% include "tools/waste_tool.html" with form=form %}
+    {% elif step > 2 %}
+      {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
+    {% else %}
+      <p>Complete previous steps first</p>
+    {% endif %}
+  </div>
+
+  <!-- Step 3: Design Tool -->
+  <div class="step-box {% if step >= 3 %}active{% else %}disabled{% endif %}">
+    <h4>Step 3: Design Tool</h4>
+    {% if step == 3 %}
+      {% include "tools/design_tool.html" %}
+    {% elif step > 3 %}
+      {% include "tools/design_result.html" with data=project.design_data insight=project.design_insight %}
+    {% else %}
+      <p>Complete previous steps first</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Navigation Buttons -->
+<div class="navigation-buttons mt-3">
+  {% if step > 1 %}
+    <a href="{% url 'project_step' project_id=project.id step=step|add:'-1' %}" class="btn btn-secondary">← Previous Step</a>
+  {% endif %}
+  {% if step < 3 %}
+    <a href="{% url 'project_step' project_id=project.id step=step|add:'1' %}" class="btn btn-primary">Next Step →</a>
+  {% endif %}
+</div>
+
+<a href="{% url 'dashboard' %}" class="btn btn-outline-secondary mt-4">← Back to Dashboard</a>
+
+<style>
+  .steps-container {
+    max-width: 900px;
+    margin: 20px auto;
+  }
+  .step-box {
+    border: 2px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background: #f9f9f9;
+    opacity: 1;
+    pointer-events: auto;
+    transition: background-color 0.3s ease;
+  }
+  .step-box.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    background: #eee;
+  }
+  .step-box.active {
+    border-color: #007bff;
+    background: #e7f1ff;
+  }
+</style>
+{% endblock %}

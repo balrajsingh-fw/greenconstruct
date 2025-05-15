@@ -12,9 +12,6 @@
   <label for="airflow">Airflow (cfm):</label>
   <input type="number" name="airflow" id="airflow" required>
 
-  <label for="size">Building Size (sq. meters):</label>
-  <input type="number" name="size" id="size" required>
-
   <label for="energy_budget">Energy Budget (kWh/year):</label>
   <input type="number" name="energy_budget" id="energy_budget" required>
 
@@ -84,7 +81,5 @@
       </div>
     </div>
   {% endif %}
-
-<a class="btn btn-secondary mt-3" href="{% url 'dashboard' %}">← Back to Dashboard</a>
 
 {% endblock %}

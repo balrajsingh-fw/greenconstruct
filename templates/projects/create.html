@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Create New Sustainability Project - Step 1: Carbon Tool</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div id="formset-container">
+      {% for form in formset %}
+        <div class="border p-3 mb-3 rounded shadow-sm bg-light">
+          <div class="form-group">
+            {{ form.material.label_tag }} {{ form.material }}
+          </div>
+          <div class="form-group">
+            {{ form.quantity.label_tag }} {{ form.quantity }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="button" class="btn btn-secondary mb-3" onclick="addForm()">➕ Add Material</button><br>
+    <button type="submit" class="btn btn-primary">Create Project & Continue</button>
+  </form>
+</div>
+
+<script>
+  function addForm() {
+    const container = document.getElementById('formset-container');
+    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+    const currentFormCount = parseInt(totalForms.value);
+    const emptyFormHtml = container.children[0].outerHTML.replace(/form-0/g, `form-${currentFormCount}`);
+    container.insertAdjacentHTML('beforeend', emptyFormHtml);
+    totalForms.value = currentFormCount + 1;
+  }
+</script>
+{% endblock %}

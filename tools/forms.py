@@ -11,7 +11,6 @@ class CarbonTrackingForm(forms.Form):
 
 class WasteReductionForm(forms.Form):
     building_size = forms.FloatField(label='Building Size (sq ft)', min_value=0)
-    material = forms.ModelChoiceField(queryset=Material.objects.all(), label='Select Material', empty_label="Choose a material")
     waste_factor = forms.FloatField(label='Waste Factor (%)', min_value=0, max_value=100)
 
     construction_method = forms.ChoiceField(

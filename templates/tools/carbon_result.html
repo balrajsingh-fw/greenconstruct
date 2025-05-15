@@ -1,0 +1,12 @@
+<div class="card bg-light p-3">
+  <h5>Total Carbon Emission: {{ insight.total_emission }} kg CO₂</h5>
+  <ul>
+    {% for item in breakdown %}
+      <li>{{ item.material }} – {{ item.quantity }} kg → {{ item.emission }} kg CO₂</li>
+    {% endfor %}
+  </ul>
+  <div class="mt-3">
+    <h6>Insight:</h6>
+    <pre>{{ insight|safe }}</pre>
+  </div>
+</div>

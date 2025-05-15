@@ -1,0 +1,34 @@
+<div class="card bg-light p-3">
+  <h5 class="mb-3">📦 Waste Estimation Summary</h5>
+
+  <ul class="list-group mb-3">
+    <li class="list-group-item">
+      <strong>Building Size:</strong> {{ data.building_size }} m²
+    </li>
+    <li class="list-group-item">
+      <strong>Material:</strong> {{ data.material }}
+    </li>
+    <li class="list-group-item">
+      <strong>Waste Factor:</strong> {{ data.waste_factor }}%
+    </li>
+    <li class="list-group-item">
+      <strong>Construction Method:</strong> {{ data.construction_method }}
+    </li>
+    <li class="list-group-item">
+      <strong>Project Phase:</strong> {{ data.project_phase }}
+    </li>
+    <li class="list-group-item">
+      <strong>Climate:</strong> {{ data.climate }}
+    </li>
+    <li class="list-group-item text-success">
+      <strong>Predicted Waste:</strong> {{ data.predicted_waste|floatformat:2 }} kg
+    </li>
+  </ul>
+
+  {% if insight %}
+    <div class="mt-4">
+      <h6 class="text-primary">🧠 AI Insight:</h6>
+      <pre style="white-space: pre-wrap;">{{ insight|safe }}</pre>
+    </div>
+  {% endif %}
+</div>

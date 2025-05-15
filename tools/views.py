@@ -1,15 +1,18 @@
 import json
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
-from .models import Material
+from .models import Material, Project
 from .forms import *
 import google.generativeai as genai
 
 MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
 
-def carbon_tool(request):
+
+def carbon_tool(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
     MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
+
     if request.method == 'POST':
         formset = MaterialFormSet(request.POST)
         if formset.is_valid():
@@ -29,19 +32,21 @@ def carbon_tool(request):
                         'emission': round(emission, 2),
                     })
 
-            insight = generate_carbon_footprint_insight(breakdown, total_emission)  # or your own function
-            return render(request, 'tools/carbon_tool.html', {
-                'formset': formset,
-                'total_emission': round(total_emission, 2),
-                'breakdown': breakdown,
-                'ai_result': insight,
-            })
+            insight = generate_carbon_footprint_insight(breakdown, total_emission)
+
+            # Save carbon data to project
+            project.carbon_data = breakdown
+            project.carbon_insight = insight
+            project.save()
+
+            # Redirect to next step: waste tool
+            return redirect('waste_tool', project_id=project.id)
     else:
         formset = MaterialFormSet()
-    # If GET request, display the form
     materials = Material.objects.all()
     return render(request, 'tools/carbon_tool.html', {'materials': materials,
-                                                      'formset': formset})
+                                                      'formset': formset,
+                                                      'project': project})
 
 
 def generate_carbon_footprint_insight(breakdown, total_emission):
@@ -98,7 +103,9 @@ def generate_carbon_footprint_insight(breakdown, total_emission):
 
 
 # Waste Reduction Tool (Renamed to waste_tool as per request)
-def waste_tool(request):
+def waste_tool(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
     if request.method == 'POST':
         form = WasteReductionForm(request.POST)
         if form.is_valid():
@@ -109,7 +116,6 @@ def waste_tool(request):
             project_phase = form.cleaned_data['project_phase']
             climate = form.cleaned_data['climate']
 
-            # Simple waste calculation (adjust as needed)
             predicted_waste = building_size * (waste_factor / 100)
 
             ai_result = generate_waste_forecasting(
@@ -117,19 +123,23 @@ def waste_tool(request):
                 construction_method, project_phase, climate
             )
 
-            return render(request, 'tools/waste_tool.html', {
-                'form': form,
-                'predicted_waste': predicted_waste,
-                'material': material,
+            # Save waste data and insights to project
+            project.waste_data = {
+                'building_size': building_size,
+                'material': material.name,
+                'waste_factor': waste_factor,
                 'construction_method': construction_method,
                 'project_phase': project_phase,
                 'climate': climate,
-                'ai_result': ai_result
-            })
+                'predicted_waste': predicted_waste
+            }
+            project.waste_insight = ai_result
+            project.save()
+
+            return redirect('design_tool', project_id=project.id)
     else:
         form = WasteReductionForm()
-
-    return render(request, 'tools/waste_tool.html', {'form': form})
+    return render(request, 'tools/waste_tool.html', {'form': form, 'project': project})
 
 def generate_waste_forecasting(building_size, material, waste_factor,
                 construction_method, project_phase, climate):
@@ -137,7 +147,7 @@ def generate_waste_forecasting(building_size, material, waste_factor,
                 "Based on the following construction context, provide smart waste reduction tips and a brief forecast:"
                 "Provide output in json format and do not add any other comments."
                 f"- Building size: {building_size} sq ft"
-                f"- Material: {material.name}"
+                f"- Materials used are: {material}"
                 f"- Waste factor: {waste_factor}%"
                 f"- Construction method: {construction_method}"
                 f"- Project phase: {project_phase}"
@@ -172,11 +182,11 @@ def generate_waste_forecasting(building_size, material, waste_factor,
     return waste_data
 
 
-def dashboard(request):
-    return render(request, 'dashboard.html')
 
 
-def design_tool(request):
+def design_tool(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
     if request.method == 'POST':
         sunlight = float(request.POST.get('sunlight'))
         airflow = float(request.POST.get('airflow'))
@@ -185,12 +195,26 @@ def design_tool(request):
 
         suggestion = generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size)
 
-        print('suggestion', suggestion, type(suggestion))
-        return render(request, 'tools/design_tool.html', {
-            'design_suggestion': suggestion
-        })
+        # Save design data and insights to project
+        project.design_data = {
+            'sunlight': sunlight,
+            'airflow': airflow,
+            'size': size,
+            'energy_budget': energy_budget
+        }
+        project.design_insight = suggestion
+        project.save()
 
-    return render(request, 'tools/design_tool.html')
+        # After design tool, generate combined insight & redirect to project detail
+        combined_insight = generate_combined_insight(project)
+        project.combined_insight = combined_insight['insight']
+        project.graph_metrics = combined_insight['graph_metrics']
+        project.save()
+
+        return redirect('project_detail', project_id=project.id)
+
+    return render(request, 'tools/design_tool.html', {'project': project})
+
 
 
 def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
@@ -202,7 +226,7 @@ def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
             - Sunlight in hrs/day
             - Airflow in cfm
             - Energy Budget in kWh/year
-            - Building Size in square meters
+            - Building Size in square ft
             
             Generate optimized green building suggestions, formatted as structured JSON.
             
@@ -282,3 +306,243 @@ def create_gemini_model():
         ]
     )
     return chat_session
+
+
+def dashboard(request):
+    projects = Project.objects.all().order_by('-created_at')
+    return render(request, "dashboard.html", {"projects": projects})
+
+
+import json
+
+def generate_combined_insight(project):
+    # Gather existing insights from project
+    carbon = project.carbon_insight or {}
+    waste = project.waste_insight or {}
+    design = project.design_insight or {}
+
+    # Convert JSON strings if needed
+    import json
+    for insight in [carbon, waste, design]:
+        if isinstance(insight, str):
+            try:
+                insight = json.loads(insight)
+            except:
+                insight = {}
+
+    # Compose the prompt with all insights embedded
+    prompt = f"""
+You are an AI sustainability assistant tasked with generating a combined insight and forecasting for a construction project.
+You are given detailed JSON data from three separate tools:
+
+1. Carbon Emission Insight:
+{json.dumps(carbon, indent=2)}
+
+2. Waste Reduction Insight:
+{json.dumps(waste, indent=2)}
+
+3. Design Tool Insight:
+{json.dumps(design, indent=2)}
+
+Please analyze all data and provide a combined JSON output with:
+
+- A human-readable combined insight summary.
+- Forecasting information for future emissions, waste, and energy efficiency.
+- Graph metrics data suitable for bar graphs, pie charts, or line charts, including:
+  - total_carbon_emission (float)
+  - predicted_waste_kg (float)
+  - energy_efficiency_score (float, 0-100)
+  - sustainability_recommendation_score (int, 0-100)
+
+Return ONLY the JSON response exactly in this format, with no extra text:
+
+{{
+  "combined_insight": "string",
+  "forecasting": {{
+    "carbon_emission_trend": [{{"year": int, "emission": float}}, ...],
+    "waste_trend": [{{"year": int, "waste": float}}, ...],
+    "energy_efficiency_trend": [{{"year": int, "score": float}}, ...]
+  }},
+  "graph_metrics": {{
+    "total_carbon_emission": float,
+    "predicted_waste_kg": float,
+    "energy_efficiency_score": float,
+    "sustainability_recommendation_score": int
+  }}
+}}
+"""
+
+    chat_session = create_gemini_model()
+    response = chat_session.send_message(prompt)
+
+    raw_text = response.text.strip()
+
+    # Clean possible markdown or code fences
+    if raw_text.startswith("```json"):
+        raw_text = raw_text.lstrip("```json").rstrip("```").strip()
+
+    try:
+        combined_data = json.loads(raw_text)
+    except json.JSONDecodeError as e:
+        print("JSON parse error:", e)
+        combined_data = {}
+
+    # Save back to project
+    project.combined_insight = combined_data.get("combined_insight", "")
+    project.combined_forecasting = combined_data.get("forecasting", {})
+    project.graph_metrics = combined_data.get("graph_metrics", {})
+    project.save()
+
+    return combined_data
+
+
+def project_create(request):
+    MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
+
+    if request.method == 'POST':
+        formset = MaterialFormSet(request.POST)
+        if formset.is_valid():
+            total_emission = 0
+            breakdown = []
+
+            for form in formset:
+                material = form.cleaned_data.get('material')
+                quantity = form.cleaned_data.get('quantity')
+                if material and quantity:
+                    emission = material.co2_intensity * quantity
+                    total_emission += emission
+                    breakdown.append({
+                        'material': material.name,
+                        'quantity': quantity,
+                        'emission': round(emission, 2),
+                    })
+
+            insight = generate_carbon_footprint_insight(breakdown, total_emission)
+
+            project = Project.objects.create(
+                carbon_data=breakdown,
+                carbon_insight=json.dumps(insight),
+                current_step=2  # Step 1 done, move to step 2
+            )
+            return redirect('project_step', project_id=project.id, step=2)
+    else:
+        formset = MaterialFormSet()
+
+    return render(request, 'projects/create.html',
+                  {'formset': formset})
+
+
+# List all projects
+def project_list(request):
+    projects = Project.objects.all().order_by('-created_at')
+    return render(request, 'projects/list.html', {'projects': projects})
+
+def project_detail(request, project_id):
+    project = get_object_or_404(Project, pk=project_id)
+
+    return render(request, 'projects/detail.html', {
+        'project': project
+    })
+
+# Handle step-wise form filling for project
+def project_step(request, project_id, step):
+    project = get_object_or_404(Project, id=project_id)
+    step = int(step)
+
+    # Prevent access to steps beyond current progress
+    if step > project.current_step:
+        return redirect('project_step', project_id=project.id, step=project.current_step)
+
+    MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
+    context = {'project': project, 'step': step}
+
+    if request.method == 'POST':
+        # STEP 1: Carbon
+        if step == 1:
+            formset = MaterialFormSet(request.POST)
+            if formset.is_valid():
+                total_emission = 0
+                breakdown = []
+
+                for form in formset:
+                    material = form.cleaned_data.get('material')
+                    quantity = form.cleaned_data.get('quantity')
+                    if material and quantity:
+                        emission = material.co2_intensity * quantity
+                        total_emission += emission
+                        breakdown.append({
+                            'material': material.name,
+                            'quantity': quantity,
+                            'emission': round(emission, 2),
+                        })
+
+                insight = generate_carbon_footprint_insight(breakdown, total_emission)
+                project.carbon_data = breakdown
+                project.carbon_total_emission = total_emission
+                project.carbon_insight = insight
+
+                if project.current_step < 2:
+                    project.current_step = 2
+                project.save()
+
+                return redirect('project_step', project_id=project.id, step=2)
+
+        # STEP 2: Waste
+        elif step == 2:
+            form = WasteReductionForm(request.POST)
+            if form.is_valid():
+                data = form.cleaned_data
+                predicted_waste = data['building_size'] * (data['waste_factor'] / 100)
+
+                ai_result = generate_waste_forecasting(
+                    data['building_size'], project.carbon_data, data['waste_factor'],
+                    data['construction_method'], data['project_phase'], data['climate']
+                )
+
+                project.waste_data = {
+                    **data,
+                    'predicted_waste': predicted_waste
+                }
+                project.waste_insight = ai_result
+                if project.current_step < 3:
+                    project.current_step = 3
+                project.save()
+
+                return redirect('project_step', project_id=project.id, step=3)
+
+        # STEP 3: Design
+        elif step == 3:
+            sunlight = float(request.POST.get('sunlight'))
+            airflow = float(request.POST.get('airflow'))
+            energy_budget = float(request.POST.get('energy_budget'))
+            size = project.waste_data.get("building_size")
+
+            suggestion = generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size)
+
+            project.design_data = {
+                'sunlight': sunlight,
+                'airflow': airflow,
+                'energy_budget': energy_budget
+            }
+            project.design_insight = suggestion
+
+            combined = generate_combined_insight(project)
+
+            if project.current_step < 4:
+                project.current_step = 4
+            project.save()
+
+            return redirect('project_detail', project_id=project.id)
+
+    else:
+        # GET request: render the correct step's form or data
+        if step == 1:
+            context['formset'] = MaterialFormSet()
+            context['materials'] = Material.objects.all()
+        elif step == 2:
+            context['form'] = WasteReductionForm()
+            context['material'] = project.carbon_data
+        elif step == 3:
+            context['project'] = project  # contains previous design data if any
+
+    return render(request, 'projects/steps.html', context)
