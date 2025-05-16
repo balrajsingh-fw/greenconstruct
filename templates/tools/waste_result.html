@@ -25,10 +25,30 @@
     </li>
   </ul>
 
-  {% if insight %}
-    <div class="mt-4">
-      <h6 class="text-primary">🧠 AI Insight:</h6>
-      <pre style="white-space: pre-wrap;">{{ insight|safe }}</pre>
+{% if insight %}
+  <div class="card mt-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      🧠 AI Waste Reduction Insight
     </div>
-  {% endif %}
+    <div class="card-body">
+      <p><strong>Predicted Waste:</strong> {{ insight.predicted_waste_kg }} kg</p>
+      <p><strong>Expected Material Wastage:</strong> {{ insight.expected_material_wastage_kg }} kg</p>
+
+      <div class="mb-3">
+        <h6 class="text-danger">⚠️ Reason for Wastage:</h6>
+        <p>{{ insight.reason_for_wastage }}</p>
+      </div>
+
+      <div>
+        <h6 class="text-success">✅ Tips to Reduce Waste:</h6>
+        <ul>
+          {% for tip in insight.waste_reduction_tips %}
+            <li>{{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
 </div>

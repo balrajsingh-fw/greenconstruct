@@ -5,8 +5,54 @@
       <li>{{ item.material }} – {{ item.quantity }} kg → {{ item.emission }} kg CO₂</li>
     {% endfor %}
   </ul>
+<div class="card bg-light p-3 mt-4">
+  <h4 class="mb-3">Carbon Emission Insight</h4>
+
+  <h5>Total Emission: {{ insight.total_emission }} kg CO₂</h5>
+
+  {% for item in insight.materials %}
+    <div class="mt-4">
+      <h5>{{ item.material }}</h5>
+      <p><strong>Quantity:</strong> {{ item.quantity }} kg</p>
+      <p><strong>Emission:</strong> {{ item.emission }} kg CO₂ ({{ item.emission_per_unit }} per kg)</p>
+
+      <div class="mb-3">
+        <h6>Environmental Impact:</h6>
+        <p>{{ item.environmental_impact }}</p>
+      </div>
+
+      {% if item.alternatives %}
+        <div class="mb-3">
+          <h6>Alternatives:</h6>
+          <div class="row">
+            {% for alt in item.alternatives %}
+              <div class="col-md-6">
+                <div class="card mb-2">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ alt.material }}</h6>
+                    <p><strong>Description:</strong> {{ alt.description }}</p>
+                    <p><strong>Emission Factor:</strong> {{ alt.emission_factor }}</p>
+                    <p><strong>Considerations:</strong> {{ alt.considerations }}</p>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="mb-3">
+        <h6>Recommendations:</h6>
+        <p>{{ item.recommendations }}</p>
+      </div>
+    </div>
+    <hr>
+  {% endfor %}
+
   <div class="mt-3">
-    <h6>Insight:</h6>
-    <pre>{{ insight|safe }}</pre>
+    <h5>Summary Insight</h5>
+    <p>{{ insight.summary_insight }}</p>
   </div>
+</div>
+
 </div>

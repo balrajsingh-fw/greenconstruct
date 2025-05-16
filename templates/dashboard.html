@@ -1,49 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Project Dashboard</title>
-  <!-- Bootstrap CSS CDN -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <style>
-    body {
-      background: #f8f9fa;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-    }
-    h1 {
-      margin-bottom: 40px;
-      font-weight: 700;
-      color: #343a40;
-    }
-    .btn-lg {
-      padding: 20px 40px;
-      font-size: 1.5rem;
-      border-radius: 10px;
-      transition: transform 0.2s ease;
-    }
-    .btn-lg:hover {
-      transform: scale(1.05);
-    }
-    .dashboard-buttons {
-      display: flex;
-      gap: 40px;
-      flex-wrap: wrap;
-      justify-content: center;
-      width: 100%;
-      max-width: 600px;
-    }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  body {
+    background: #f8f9fa;
+  }
+  .dashboard-wrapper {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+  }
+  h1 {
+    margin-bottom: 40px;
+    font-weight: 700;
+    color: #343a40;
+  }
+  .btn-lg {
+    padding: 20px 40px;
+    font-size: 1.5rem;
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+  }
+  .btn-lg:hover {
+    transform: scale(1.05);
+  }
+  .dashboard-buttons {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 600px;
+  }
+</style>
+
+<div class="dashboard-wrapper">
   <h1>Project Dashboard</h1>
   <div class="dashboard-buttons">
     <a href="{% url 'project_list' %}" class="btn btn-primary btn-lg">
@@ -53,10 +47,5 @@
       Create New Project
     </a>
   </div>
-
-  <!-- Optional Bootstrap JS Bundle with Popper (if you want JS components) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-  ></script>
-</body>
-</html>
+</div>
+{% endblock %}

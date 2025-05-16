@@ -421,7 +421,7 @@ def project_create(request):
 
             project = Project.objects.create(
                 carbon_data=breakdown,
-                carbon_insight=json.dumps(insight),
+                carbon_insight=insight,
                 current_step=2  # Step 1 done, move to step 2
             )
             return redirect('project_step', project_id=project.id, step=2)

@@ -13,10 +13,47 @@
 
     <hr>
 
-    <h6 class="text-muted">🧠 AI-Generated Insight:</h6>
-    <div class="alert alert-info">
-      {{ project.design_insight|linebreaks }}
+{% if project.design_insight %}
+  {% with insight=project.design_insight %}
+    <div class="card mt-4 shadow-sm">
+      <div class="card-header bg-info text-white">
+        🧠 AI-Generated Sustainable Design Insight
+      </div>
+      <div class="card-body">
+
+        <!-- Passive Design Strategies -->
+        <h6 class="text-primary">🌞 Passive Design Strategies:</h6>
+        <ul>
+          {% for strategy in insight.passive_design_strategies %}
+            <li>{{ strategy }}</li>
+          {% endfor %}
+        </ul>
+
+        <!-- Recommended Materials -->
+        <h6 class="text-success mt-4">🏗️ Recommended Sustainable Materials:</h6>
+        <ul>
+          {% for material in insight.recommended_materials %}
+            <li><strong>{{ material.name }}</strong> – {{ material.reason }}</li>
+          {% endfor %}
+        </ul>
+
+        <!-- Energy Efficiency Tips -->
+        <h6 class="text-warning mt-4">⚡ Energy Efficiency Tips:</h6>
+        <ul>
+          {% for tip in insight.energy_efficiency_tips %}
+            <li>{{ tip }}</li>
+          {% endfor %}
+        </ul>
+
+        <!-- Additional Notes -->
+        <h6 class="text-muted mt-4">📝 Additional Notes:</h6>
+        <p>{{ insight.additional_notes }}</p>
+
+      </div>
     </div>
+  {% endwith %}
+{% endif %}
+
 
     {% if project.graph_metrics %}
       <hr>
