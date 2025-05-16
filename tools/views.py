@@ -347,6 +347,9 @@ You are given detailed JSON data from three separate tools:
 Please analyze all data and provide a combined JSON output with:
 
 - A human-readable combined insight summary.
+- In forecasting make sure no past year is provide , forecasting will be made from current year to current year + 1 year
+- In the final insight also add the percentage reduction or increase in cost if adviced material are
+ used.
 - Forecasting information for future emissions, waste, and energy efficiency.
 - Graph metrics data suitable for bar graphs, pie charts, or line charts, including:
   - total_carbon_emission (float)
