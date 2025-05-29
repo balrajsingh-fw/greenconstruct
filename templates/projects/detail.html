@@ -36,7 +36,28 @@
     {% if project.current_step == 4 %}
       <div class="step-box active">
         <h4>Final Combined Analysis</h4>
-        <p>{{ project.combined_insight }}</p>
+          <div class="combined-insight-box mb-4">
+    <!-- Current Scenario -->
+    <div class="mb-4">
+      <h5 class="text-danger">Current Scenario</h5>
+      <p><strong>Score:</strong> {{ project.combined_insight.current_scenario.score }}</p>
+      <ul>
+        {% for reason in project.combined_insight.current_scenario.reasons %}
+          <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Suggested Improvements -->
+    <div>
+      <h5 class="text-success">Suggested Improvements</h5>
+      <p><strong>Score:</strong> {{ project.combined_insight.suggestion.score }}</p>
+      <ul>
+        {% for reason in project.combined_insight.suggestion.reasons %}
+          <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
         <!-- Forecasting Trends -->
         <div class="row mt-5">
           <div class="col-md-12">
@@ -128,6 +149,10 @@
 
   // Metrics Bar Chart
   const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+  const cappedData = metrics.total_carbon_emission > 1000 ? metrics.total_carbon_emission : metrics.total_carbon_emission;
+const cappedWaste = metrics.predicted_waste_kg > 1000 ? metrics.predicted_waste_kg : metrics.predicted_waste_kg;
+const cappedEnergy = metrics.energy_efficiency_score > 1000 ? metrics.energy_efficiency_score : metrics.energy_efficiency_score;
+
 new Chart(metricsCtx, {
   type: 'bar',
   data: {
@@ -140,17 +165,17 @@ new Chart(metricsCtx, {
     datasets: [{
       label: 'Main Metrics',
       data: [
-        metrics.total_carbon_emission,
-        metrics.predicted_waste_kg,
-        metrics.energy_efficiency_score,
-        null // Skip sustainability score here
+        cappedData,
+        cappedWaste,
+        cappedEnergy,
+        null // skip LEED here
       ],
       backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
       xAxisID: 'xMain'
     }, {
       label: 'USGBC LEED Score',
       data: [null, null, null, metrics.sustainability_recommendation_score],
-      backgroundColor: ['null', 'null', 'null', '#FFCE56'],
+      backgroundColor: [null, null, null, '#FFCE56'],
       xAxisID: 'xSecondary'
     }]
   },
@@ -162,6 +187,7 @@ new Chart(metricsCtx, {
         type: 'linear',
         position: 'top',
         beginAtZero: true,
+        max: 1000,
         title: { display: true, text: 'Main Metrics Scale' }
       },
       xSecondary: {
@@ -180,10 +206,20 @@ new Chart(metricsCtx, {
         enabled: true,
         callbacks: {
           label: function(context) {
-            if (context.dataset.label === 'Sustainability Score') {
-              return `USGBC LEED Score: ${context.raw} (USGBC LEED Grade: ${metrics.sustainability_recommendation_grade})`;
+            const label = context.dataset.label || '';
+            if (label === 'USGBC LEED Score') {
+              return `USGBC LEED Score: ${context.raw} (Grade: ${metrics.sustainability_recommendation_grade})`;
             }
-            return `${context.dataset.label}: ${context.raw}`;
+            // For main metrics, show real value even if capped in chart
+            const originalValues = {
+              'Total Carbon Emission': metrics.total_carbon_emission,
+              'Predicted Waste (kg)': metrics.predicted_waste_kg,
+              'Energy Efficiency (%)': metrics.energy_efficiency_score
+            };
+            if (originalValues[label]) {
+              return `${label}: ${originalValues[label]}`;
+            }
+            return `${label}: ${context.raw}`;
           }
         }
       }

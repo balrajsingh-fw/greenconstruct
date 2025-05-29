@@ -19,3 +19,28 @@ Ceramic,SiO2 + Al2O3 + Na2O,0.55
 Recycled Concrete Aggregate,SiO2 + CaO + H2O,0.3
 Marble,CaCO3,0.6
 Granite,SiO2 + Al2O3 + Fe2O3,0.45
+Bamboo,(C6H10O5)n,0.15
+Cork,C10H16O,0.1
+Hempcrete,Ca(OH)2 + Hemp Fibers,0.2
+Cross-Laminated Timber (CLT),(C6H10O5)n,0.25
+Geopolymer Concrete,N-A-S-H Gel,0.2
+Aerogel Insulation,SiO2 Matrix,5.0
+Mycelium Composite,(CH2O)n (Fungal Biomass),0.05
+Adobe,Clay + Sand + Straw,0.1
+Rammed Earth,Compressed Soil,0.05
+Recycled Plastic Composite,(C2H4)n,0.6
+Volcanic Rock,Basalt,0.4
+Thatch (Straw Bale),Lignocellulose,0.05
+High-Performance Glazing,Glass + Low-E Coating,2.5
+Phase-Change Material (PCM),Paraffin CnH2n+2,2.2
+Recycled Steel,Fe + C,0.5
+Recycled Aluminum,Al,1.5
+Recycled Glass,SiO2,0.3
+Solar PV Panels,Si + Al + Glass,0.8
+Recycled Copper,Cu,1.0
+Recycled Ceramic,SiO2 + Al2O3 + Na2O,0.3
+Bamboo Composite Panels,(C6H10O5)n + resin,0.2
+Cellulose Insulation,C6H10O5 (recycled paper),0.1
+Fly Ash (Concrete Additive),SiO2 + Al2O3 + Fe2O3,0.1
+Recycled Rubber,(C5H8)n,0.5
+Low-VOC Paints,Various organic compounds,0

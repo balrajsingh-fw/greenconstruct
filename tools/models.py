@@ -27,7 +27,7 @@ class Project(models.Model):
     design_data = models.JSONField(null=True, blank=True)
     design_insight = models.JSONField(null=True, blank=True)
 
-    combined_insight = models.TextField(null=True, blank=True)
+    combined_insight = models.JSONField(null=True, blank=True)
     graph_metrics = models.JSONField(null=True, blank=True)
     combined_forecasting = models.JSONField(null=True, blank=True)  # 👈 Add this
 

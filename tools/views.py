@@ -345,7 +345,9 @@ You are given detailed JSON data from three separate tools:
 
 Please analyze all data and provide a combined JSON output with:
 
-- A human-readable combined insight summary.
+- A human-readable combined insight summary containing two parts
+    1. LEED score according to current practise and current data available will be value for key "score" and reason for its calculation will be value of key "reasons", reasons value will be list of strings.
+    2. Suggestions for improving all factors to maximise LEED score and then predicted LEED score once user follows all suggestion properly. Here also provide result in two keys 'score' and 'reasons'. Similar to above point.
 - In forecasting make sure no past year is provide , forecasting will be made from current year to current year + 1 year
 - In the final insight also add the percentage reduction or increase in cost if adviced material are
  used.
@@ -360,7 +362,10 @@ Note: sustainability_recommendation_grade is string providing grades for particu
 Return ONLY the JSON response exactly in this format, with no extra text:
 
 {{
-  "combined_insight": "string",
+  "combined_insight": {{
+    "current_scenario": {{'score': int, 'reasons': list of strings}},
+    "suggestion": {{'score': int, 'reasons': list of strings}}
+  }},
   "forecasting": {{
     "carbon_emission_trend": [{{"year": int, "emission": float}}, ...],
     "waste_trend": [{{"year": int, "waste": float}}, ...],
@@ -390,7 +395,7 @@ Return ONLY the JSON response exactly in this format, with no extra text:
     except json.JSONDecodeError as e:
         print("JSON parse error:", e)
         combined_data = {}
-
+    print("insight", combined_data.get("insight"))
     # Save back to project
     project.combined_insight = combined_data.get("combined_insight", "")
     project.combined_forecasting = combined_data.get("forecasting", {})
