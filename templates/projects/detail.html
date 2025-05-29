@@ -135,7 +135,7 @@ new Chart(metricsCtx, {
       'Total Carbon Emission',
       'Predicted Waste (kg)',
       'Energy Efficiency (%)',
-      'Sustainability Score'
+      'USGBC LEED Score'
     ],
     datasets: [{
       label: 'Main Metrics',
@@ -148,7 +148,7 @@ new Chart(metricsCtx, {
       backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
       xAxisID: 'xMain'
     }, {
-      label: 'Sustainability Score (%)',
+      label: 'USGBC LEED Score',
       data: [null, null, null, metrics.sustainability_recommendation_score],
       backgroundColor: ['null', 'null', 'null', '#FFCE56'],
       xAxisID: 'xSecondary'
@@ -169,9 +169,9 @@ new Chart(metricsCtx, {
         position: 'bottom',
         beginAtZero: true,
         min: 0,
-        max: 100,
+        max: 110,
         grid: { drawOnChartArea: false },
-        title: { display: true, text: 'Sustainability Score (%)' }
+        title: { display: true, text: 'USGBC LEED Score' }
       }
     },
     plugins: {
@@ -180,8 +180,8 @@ new Chart(metricsCtx, {
         enabled: true,
         callbacks: {
           label: function(context) {
-            if (context.dataset.label === 'Sustainability Score (%)') {
-              return `Sustainability Score: ${context.raw}% (Grade: ${metrics.sustainability_recommendation_grade})`;
+            if (context.dataset.label === 'Sustainability Score') {
+              return `USGBC LEED Score: ${context.raw} (USGBC LEED Grade: ${metrics.sustainability_recommendation_grade})`;
             }
             return `${context.dataset.label}: ${context.raw}`;
           }

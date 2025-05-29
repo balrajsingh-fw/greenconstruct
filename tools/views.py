@@ -354,9 +354,9 @@ Please analyze all data and provide a combined JSON output with:
   - total_carbon_emission (float)
   - predicted_waste_kg (float)
   - energy_efficiency_score (float, 0-100)
-  - sustainability_recommendation_score (int, 0-100%) (approximate BREEAM Certificate score according to your analysis)
+  - sustainability_recommendation_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
   - sustainability_recommendation_grade (str)
-Note: sustainability_recommendation_grade is string providing grades for particular range of score out of 100% [Unclassified(<30%),Pass(≥30%), Good(≥45%),Very Good(≥55%),Excellent(≥70%),Outstanding(≥85%)],
+Note: sustainability_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
 Return ONLY the JSON response exactly in this format, with no extra text:
 
 {{
