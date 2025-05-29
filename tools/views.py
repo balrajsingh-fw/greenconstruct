@@ -410,6 +410,9 @@ def project_create(request):
 
     if request.method == 'POST':
         formset = MaterialFormSet(request.POST)
+        latitude = request.POST.get('latitude')
+        longitude = request.POST.get('longitude')
+        name = request.POST.get("name")
         if formset.is_valid():
             total_emission = 0
             breakdown = []
@@ -430,7 +433,10 @@ def project_create(request):
 
             project = Project.objects.create(
                 carbon_data=breakdown,
+                latitude=float(latitude),
+                longitude=float(longitude),
                 carbon_insight=insight,
+                name=name,
                 current_step=2  # Step 1 done, move to step 2
             )
             return redirect('project_step', project_id=project.id, step=2)

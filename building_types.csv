@@ -1,0 +1,24 @@
+key,label,description,leed_applicable_ratings
+COMMERCIAL_OFFICE,Commercial Office,"Office buildings used for commercial purposes, such as corporate headquarters or business centers.","LEED BD+C, LEED O+M, LEED ID+C"
+RESIDENTIAL_SINGLE_FAMILY,Residential - Single Family,Standalone residential homes for individual families.,LEED Homes
+RESIDENTIAL_MULTI_FAMILY,Residential - Multi Family,"Apartment complexes, condos, or townhomes with multiple units.","LEED BD+C, LEED Homes"
+RETAIL,Retail,"Shops, malls, and other spaces used for selling goods or services.","LEED BD+C, LEED O+M, LEED ID+C"
+HOSPITALITY,Hospitality (Hotel),"Hotels, motels, and resorts focused on temporary lodging.","LEED BD+C, LEED O+M"
+EDUCATION_K12,Education (K-12),Primary and secondary schools for children.,"LEED BD+C, LEED O+M"
+EDUCATION_HIGHER_ED,Education (Higher Ed),"Universities, colleges, and vocational institutions.","LEED BD+C, LEED O+M"
+HEALTHCARE,Healthcare Facility,"Hospitals, clinics, and medical centers.","LEED BD+C, LEED O+M"
+WAREHOUSE_DISTRIBUTION,Warehouse / Distribution Center,Facilities for storage and distribution of goods.,"LEED BD+C, LEED O+M"
+DATA_CENTER,Data Center,Facilities that house computer systems and data infrastructure.,"LEED BD+C, LEED O+M"
+LABORATORY,Laboratory / Research Facility,Buildings for scientific research and experimentation.,LEED BD+C
+GOVERNMENT_BUILDING,Government Building,"Buildings owned or operated by local, state, or federal governments.","LEED BD+C, LEED O+M"
+TRANSPORTATION_FACILITY,Transportation Facility,"Airports, train stations, and bus terminals.","LEED BD+C, LEED O+M"
+MIXED_USE,Mixed Use,"Buildings combining residential, commercial, and sometimes industrial spaces.","LEED BD+C, LEED ND"
+INDUSTRIAL,Industrial Facility,Manufacturing or heavy-duty processing sites.,"LEED BD+C, LEED O+M"
+CORE_AND_SHELL,Core & Shell,"Projects where the developer controls the mechanical, electrical, and envelope but not the interior fit-out.",LEED BD+C
+EXISTING_BUILDING,Existing Building (O+M),Existing buildings undergoing operation and maintenance optimization.,LEED O+M
+INTERIOR_SPACE,Commercial Interior (CI),Interior spaces being fit-out within a building.,LEED ID+C
+SPORTS_VENUE,Sports Venue / Stadium,Stadiums and arenas for sporting events.,"LEED BD+C, LEED O+M"
+RELIGIOUS_BUILDING,Religious Building,"Churches, temples, mosques, or other places of worship.",LEED BD+C
+CIVIC_CULTURAL,Civic / Cultural Facility,"Museums, theaters, libraries, or cultural centers.","LEED BD+C, LEED O+M"
+INFRASTRUCTURE,Infrastructure,Transit hubs and non-building civil works.,LEED ND
+PARKING_STRUCTURE,Parking Structure,Parking garages or decks.,LEED BD+C

@@ -13,6 +13,8 @@ class Material(models.Model):
 
 class Project(models.Model):
     name = models.CharField(max_length=200)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     current_step = models.PositiveSmallIntegerField(default=1)
@@ -33,3 +35,12 @@ class Project(models.Model):
 
     def __int__(self):
         return self.id
+
+class BuildingType(models.Model):
+    key = models.CharField(max_length=100, unique=True)
+    label = models.CharField(max_length=255)
+    description = models.TextField()
+    leed_applicable_ratings = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.label

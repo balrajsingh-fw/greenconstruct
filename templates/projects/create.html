@@ -8,6 +8,11 @@
     {% csrf_token %}
     {{ formset.management_form }}
 
+      <div class="form-group mb-3">
+    <label for="name"><strong>Project Name</strong></label>
+    <input type="text" id="name" name="name" class="form-control" required />
+  </div>
+
     <div id="formset-container">
       {% for form in formset %}
         <div class="border p-3 mb-3 rounded shadow-sm bg-light">
@@ -22,6 +27,12 @@
     </div>
 
     <button type="button" class="btn btn-secondary mb-3" onclick="addForm()">➕ Add Material</button><br>
+
+      <!-- Hidden inputs to hold lat/lng -->
+    <input type="hidden" id="id_latitude" name="latitude" />
+    <input type="hidden" id="id_longitude" name="longitude" />
+
+    <div id="map" style="height: 400px;"></div>
     <button type="submit" class="btn btn-primary">Create Project & Continue</button>
   </form>
 </div>
@@ -35,5 +46,39 @@
     container.insertAdjacentHTML('beforeend', emptyFormHtml);
     totalForms.value = currentFormCount + 1;
   }
+
+  const defaultLat = 20.0;
+  const defaultLng = 77.0;
+
+  const map = L.map('map').setView([defaultLat, defaultLng], 5);
+
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  }).addTo(map);
+
+  // Marker variable
+  let marker;
+
+  function onMapClick(e) {
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+
+    // Update hidden inputs
+    document.getElementById('id_latitude').value = lat;
+    document.getElementById('id_longitude').value = lng;
+
+    // Remove old marker if exists
+    if (marker) {
+      map.removeLayer(marker);
+    }
+
+    // Add marker at clicked location
+    marker = L.marker([lat, lng]).addTo(map);
+  }
+
+  // Listen for map clicks
+  map.on('click', onMapClick);
 </script>
 {% endblock %}

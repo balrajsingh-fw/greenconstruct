@@ -5,6 +5,9 @@
       <li>{{ item.material }} – {{ item.quantity }} kg → {{ item.emission }} kg CO₂</li>
     {% endfor %}
   </ul>
+  <div class="card bg-light p-3 mb-4">
+  <div id="map" style="height: 400px;"></div>
+    </div>
 <div class="card bg-light p-3 mt-4">
   <h4 class="mb-3">Carbon Emission Insight</h4>
 
@@ -56,3 +59,19 @@
 </div>
 
 </div>
+
+  <script>
+  const latitude = {{ project.latitude }};
+  const longitude = {{ project.longitude }};
+  const projectName = "{{ project.name|escapejs }}";
+
+  const map = L.map('map').setView([latitude, longitude], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  L.marker([latitude, longitude]).addTo(map)
+    .bindPopup("Project: " + projectName)
+    .openPopup();
+</script>
