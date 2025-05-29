@@ -2,7 +2,7 @@ import json
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
-from .models import Material, Project
+from .models import Material, Project, BuildingType
 from .forms import *
 import google.generativeai as genai
 
@@ -407,11 +407,15 @@ Return ONLY the JSON response exactly in this format, with no extra text:
 
 def project_create(request):
     MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
+    building_types = BuildingType.objects.all()
 
     if request.method == 'POST':
         formset = MaterialFormSet(request.POST)
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
+        city = request.POST.get("city")
+        country = request.POST.get("country")
+        building_type = request.POST.get("building_type")
         name = request.POST.get("name")
         if formset.is_valid():
             total_emission = 0
@@ -435,6 +439,9 @@ def project_create(request):
                 carbon_data=breakdown,
                 latitude=float(latitude),
                 longitude=float(longitude),
+                city=city,
+                country=country,
+                building_type=building_type,
                 carbon_insight=insight,
                 name=name,
                 current_step=2  # Step 1 done, move to step 2
@@ -444,7 +451,8 @@ def project_create(request):
         formset = MaterialFormSet()
 
     return render(request, 'projects/create.html',
-                  {'formset': formset})
+                  {'formset': formset,
+                   "building_types": building_types})
 
 
 # List all projects

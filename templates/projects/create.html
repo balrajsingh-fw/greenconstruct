@@ -8,11 +8,20 @@
     {% csrf_token %}
     {{ formset.management_form }}
 
-      <div class="form-group mb-3">
-    <label for="name"><strong>Project Name</strong></label>
-    <input type="text" id="name" name="name" class="form-control" required />
-  </div>
+    <!-- Project Name -->
+    <div class="form-group mb-3">
+        <label for="building_type"><strong>Building Type</strong></label>
+      <select id="building_type" name="building_type" class="form-control" required>
+        <option value="" disabled selected>Select a building type</option>
+        {% for btype in building_types %}
+          <option value="{{ btype.key }}">{{ btype.label }}</option>
+        {% endfor %}
+      </select>
+      <label for="name"><strong>Project Name</strong></label>
+      <input type="text" id="name" name="name" class="form-control" required />
+    </div>
 
+    <!-- Material Formset -->
     <div id="formset-container">
       {% for form in formset %}
         <div class="border p-3 mb-3 rounded shadow-sm bg-light">
@@ -28,11 +37,21 @@
 
     <button type="button" class="btn btn-secondary mb-3" onclick="addForm()">➕ Add Material</button><br>
 
-      <!-- Hidden inputs to hold lat/lng -->
+    <!-- Hidden inputs to hold lat/lng/city/country -->
     <input type="hidden" id="id_latitude" name="latitude" />
     <input type="hidden" id="id_longitude" name="longitude" />
+    <input type="hidden" id="id_city" name="city" />
+    <input type="hidden" id="id_country" name="country" />
 
-    <div id="map" style="height: 400px;"></div>
+    <!-- Optional visible address display -->
+    <div class="form-group">
+      <label for="id_address_display"><strong>Selected Location</strong></label>
+      <input type="text" id="id_address_display" class="form-control" readonly>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map" style="height: 400px;" class="my-3"></div>
+
     <button type="submit" class="btn btn-primary">Create Project & Continue</button>
   </form>
 </div>
@@ -52,33 +71,47 @@
 
   const map = L.map('map').setView([defaultLat, defaultLng], 5);
 
-  // Add OpenStreetMap tiles
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
-  // Marker variable
   let marker;
 
   function onMapClick(e) {
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
 
-    // Update hidden inputs
     document.getElementById('id_latitude').value = lat;
     document.getElementById('id_longitude').value = lng;
 
-    // Remove old marker if exists
     if (marker) {
       map.removeLayer(marker);
     }
 
-    // Add marker at clicked location
     marker = L.marker([lat, lng]).addTo(map);
+
+    // Reverse geocode
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+      .then(response => response.json())
+      .then(data => {
+        const address = data.address || {};
+        const city = address.city || address.town || address.village || '';
+        const country = address.country || '';
+        const display = data.display_name || `${city}, ${country}`;
+
+        document.getElementById('id_city').value = city;
+        document.getElementById('id_country').value = country;
+        document.getElementById('id_address_display').value = display;
+
+        marker.bindPopup(`<strong>${display}</strong>`).openPopup();
+      })
+      .catch(error => {
+        console.error('Reverse geocoding failed:', error);
+        marker.bindPopup("Location selected").openPopup();
+      });
   }
 
-  // Listen for map clicks
   map.on('click', onMapClick);
 </script>
 {% endblock %}
