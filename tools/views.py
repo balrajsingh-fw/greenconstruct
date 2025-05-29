@@ -126,7 +126,6 @@ def waste_tool(request, project_id):
             # Save waste data and insights to project
             project.waste_data = {
                 'building_size': building_size,
-                'material': material.name,
                 'waste_factor': waste_factor,
                 'construction_method': construction_method,
                 'project_phase': project_phase,
@@ -355,8 +354,9 @@ Please analyze all data and provide a combined JSON output with:
   - total_carbon_emission (float)
   - predicted_waste_kg (float)
   - energy_efficiency_score (float, 0-100)
-  - sustainability_recommendation_score (int, 0-100)
-
+  - sustainability_recommendation_score (int, 0-100%) (approximate BREEAM Certificate score according to your analysis)
+  - sustainability_recommendation_grade (str)
+Note: sustainability_recommendation_grade is string providing grades for particular range of score out of 100% [Unclassified(<30%),Pass(≥30%), Good(≥45%),Very Good(≥55%),Excellent(≥70%),Outstanding(≥85%)],
 Return ONLY the JSON response exactly in this format, with no extra text:
 
 {{
@@ -370,7 +370,8 @@ Return ONLY the JSON response exactly in this format, with no extra text:
     "total_carbon_emission": float,
     "predicted_waste_kg": float,
     "energy_efficiency_score": float,
-    "sustainability_recommendation_score": int
+    "sustainability_recommendation_score": int,
+    "sustainability_recommendation_grade": string
   }}
 }}
 """
@@ -525,7 +526,8 @@ def project_step(request, project_id, step):
             project.design_data = {
                 'sunlight': sunlight,
                 'airflow': airflow,
-                'energy_budget': energy_budget
+                'energy_budget': energy_budget,
+                'size': size
             }
             project.design_insight = suggestion
 

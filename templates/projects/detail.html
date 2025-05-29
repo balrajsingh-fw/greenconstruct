@@ -128,43 +128,70 @@
 
   // Metrics Bar Chart
   const metricsCtx = document.getElementById('metricsChart').getContext('2d');
-  new Chart(metricsCtx, {
-    type: 'bar',
-    data: {
-      labels: [
-        'Total Carbon Emission',
-        'Predicted Waste (kg)',
-        'Energy Efficiency (%)',
-        'Sustainability Score'
+new Chart(metricsCtx, {
+  type: 'bar',
+  data: {
+    labels: [
+      'Total Carbon Emission',
+      'Predicted Waste (kg)',
+      'Energy Efficiency (%)',
+      'Sustainability Score'
+    ],
+    datasets: [{
+      label: 'Main Metrics',
+      data: [
+        metrics.total_carbon_emission,
+        metrics.predicted_waste_kg,
+        metrics.energy_efficiency_score,
+        null // Skip sustainability score here
       ],
-      datasets: [{
-        label: 'Project Summary Metrics',
-        data: [
-          metrics.total_carbon_emission,
-          metrics.predicted_waste_kg,
-          metrics.energy_efficiency_score,
-          metrics.sustainability_recommendation_score
-        ],
-        backgroundColor: [
-          '#36A2EB',
-          '#FF6384',
-          '#4BC0C0',
-          '#FFCE56'
-        ]
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      scales: {
-        x: { beginAtZero: true }
+      backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
+      xAxisID: 'xMain'
+    }, {
+      label: 'Sustainability Score (%)',
+      data: [null, null, null, metrics.sustainability_recommendation_score],
+      backgroundColor: ['null', 'null', 'null', '#FFCE56'],
+      xAxisID: 'xSecondary'
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    scales: {
+      xMain: {
+        type: 'linear',
+        position: 'top',
+        beginAtZero: true,
+        title: { display: true, text: 'Main Metrics Scale' }
       },
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: true }
+      xSecondary: {
+        type: 'linear',
+        position: 'bottom',
+        beginAtZero: true,
+        min: 0,
+        max: 100,
+        grid: { drawOnChartArea: false },
+        title: { display: true, text: 'Sustainability Score (%)' }
+      }
+    },
+    plugins: {
+      legend: { display: true },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: function(context) {
+            if (context.dataset.label === 'Sustainability Score (%)') {
+              return `Sustainability Score: ${context.raw}% (Grade: ${metrics.sustainability_recommendation_grade})`;
+            }
+            return `${context.dataset.label}: ${context.raw}`;
+          }
+        }
       }
     }
-  });
+  }
+});
+
+
   {% endif %}
 </script>
 {% endblock %}

@@ -7,3 +7,8 @@ in shell type exec(open("import_material.py").read())
 
 python manage.py runserver 3003
 
+
+admin credentials:
+Balraj
+faber@123
+
