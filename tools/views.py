@@ -4,10 +4,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from .models import Material, Project, BuildingType, Document
 from .forms import *
-import google.generativeai as genai
+from google import genai
 from django.contrib import messages
 
 MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
+client = genai.Client(api_key='AIzaSyCbHyl224pNyX_HOnYFtjwQr_o2nH8GgLU')
 
 
 def carbon_tool(request, project_id):
@@ -85,8 +86,9 @@ def generate_carbon_footprint_insight(breakdown, total_emission):
         f"{breakdown}, with total emission: {total_emission}.\n"
         "Only return the valid JSON response as described above."
     )
-    chat_session = create_gemini_model()
-    response = chat_session.send_message(prompt)
+    response = client.models.generate_content(
+    model='gemini-2.0-flash-001', contents=prompt
+    )
 
     raw_text = response.text.strip()
 
@@ -164,8 +166,9 @@ def generate_waste_forecasting(building_size, material, waste_factor,
                   "reason_for_wastage": str
                 }
                 """)
-    chat_session = create_gemini_model()
-    response = chat_session.send_message(prompt)
+    response = client.models.generate_content(
+    model='gemini-2.0-flash-001', contents=prompt
+    )
 
     raw_text = response.text.strip()
 
@@ -252,8 +255,9 @@ def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
             f"Respond with only a valid json object without any additional commentary."
     )
 
-    chat_session = create_gemini_model()
-    response = chat_session.send_message(prompt)
+    response = client.models.generate_content(
+    model='gemini-2.0-flash-001', contents=prompt
+    )
 
     raw_text = response.text.strip()
 
@@ -269,43 +273,43 @@ def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
     return design_data
 
 
-def create_gemini_model():
-    generation_config = {
-        "temperature": 1,
-        "top_p": 0.95,
-        "top_k": 64,
-        "max_output_tokens": 8192,
-        "response_mime_type": "application/json",  # Set the MIME type to JSON
-    }
-    safety_settings = [
-        {
-            "category": "HARM_CATEGORY_HARASSMENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-        },
-        {
-            "category": "HARM_CATEGORY_HATE_SPEECH",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-        },
-        {
-            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-        },
-        {
-            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-            "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-        },
-    ]
-    genai.configure(api_key='AIzaSyCbHyl224pNyX_HOnYFtjwQr_o2nH8GgLU')
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        safety_settings=safety_settings,
-        generation_config=generation_config,
-    )
-    chat_session = model.start_chat(
-        history=[
-        ]
-    )
-    return chat_session
+# def create_gemini_model():
+#     generation_config = {
+#         "temperature": 1,
+#         "top_p": 0.95,
+#         "top_k": 64,
+#         "max_output_tokens": 8192,
+#         "response_mime_type": "application/json",  # Set the MIME type to JSON
+#     }
+#     safety_settings = [
+#         {
+#             "category": "HARM_CATEGORY_HARASSMENT",
+#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+#         },
+#         {
+#             "category": "HARM_CATEGORY_HATE_SPEECH",
+#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+#         },
+#         {
+#             "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+#         },
+#         {
+#             "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
+#         },
+#     ]
+#     genai.configure(api_key='')
+#     model = genai.GenerativeModel(
+#         model_name="gemini-2.0-flash",
+#         safety_settings=safety_settings,
+#         generation_config=generation_config,
+#     )
+#     chat_session = model.start_chat(
+#         history=[
+#         ]
+#     )
+#     return chat_session
 
 
 def dashboard(request):
@@ -382,8 +386,9 @@ Return ONLY the JSON response exactly in this format, with no extra text:
 }}
 """
 
-    chat_session = create_gemini_model()
-    response = chat_session.send_message(prompt)
+    response = client.models.generate_content(
+    model='gemini-2.0-flash-001', contents=prompt
+    )
 
     raw_text = response.text.strip()
 
