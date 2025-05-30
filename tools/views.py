@@ -569,3 +569,8 @@ def project_step(request, project_id, step):
             context['project'] = project  # contains previous design data if any
 
     return render(request, 'projects/steps.html', context)
+
+def project_gallery(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    documents = project.documents.all()  # assuming a related name like `documents`
+    return render(request, 'projects/gallery.html', {'project': project, 'documents': documents})

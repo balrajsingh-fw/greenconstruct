@@ -49,3 +49,9 @@ class BuildingType(models.Model):
 
     def __str__(self):
         return self.label
+
+class Document(models.Model):
+    project = models.ForeignKey(Project, related_name='documents', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)

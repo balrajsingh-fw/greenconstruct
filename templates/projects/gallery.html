@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>📁 Project Gallery: {{ project.name }}</h2>
+
+<div class="row">
+  {% if documents %}
+    {% for doc in documents %}
+      <div class="col-md-4 mb-3">
+        <div class="card">
+          <div class="card-body">
+            <h5>{{ doc.title }}</h5>
+            <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Document</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No documents uploaded yet.</p>
+  {% endif %}
+</div>
+
+<a href="{% url 'project_step' project.id project.current_step %}" class="btn btn-outline-secondary mt-3">← Back to Project</a>
+{% endblock %}
