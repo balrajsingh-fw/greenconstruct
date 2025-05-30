@@ -1,5 +1,4 @@
 import json
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from .models import Material, Project, BuildingType, Document
@@ -273,51 +272,23 @@ def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
     return design_data
 
 
-# def create_gemini_model():
-#     generation_config = {
-#         "temperature": 1,
-#         "top_p": 0.95,
-#         "top_k": 64,
-#         "max_output_tokens": 8192,
-#         "response_mime_type": "application/json",  # Set the MIME type to JSON
-#     }
-#     safety_settings = [
-#         {
-#             "category": "HARM_CATEGORY_HARASSMENT",
-#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-#         },
-#         {
-#             "category": "HARM_CATEGORY_HATE_SPEECH",
-#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-#         },
-#         {
-#             "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-#         },
-#         {
-#             "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-#             "threshold": "BLOCK_MEDIUM_AND_ABOVE",
-#         },
-#     ]
-#     genai.configure(api_key='')
-#     model = genai.GenerativeModel(
-#         model_name="gemini-2.0-flash",
-#         safety_settings=safety_settings,
-#         generation_config=generation_config,
-#     )
-#     chat_session = model.start_chat(
-#         history=[
-#         ]
-#     )
-#     return chat_session
+def analyze_pdf_from_file(file_path, prompt):
+    """
+    Uploads a PDF file and asks Gemini to answer a question based on its content.
+    """
+    # Upload the PDF file
+    uploaded_file = client.files.upload(file=file_path)
 
+    response = client.models.generate_content(
+        model='gemini-2.0-flash-001',
+        contents=[prompt, uploaded_file]
+    )
+    return response
 
 def dashboard(request):
     projects = Project.objects.all().order_by('-created_at')
     return render(request, "dashboard.html", {"projects": projects})
 
-
-import json
 
 def generate_combined_insight(project):
     # Gather existing insights from project
@@ -336,58 +307,62 @@ def generate_combined_insight(project):
 
     # Compose the prompt with all insights embedded
     prompt = f"""
-You are an AI sustainability assistant tasked with generating a combined insight and forecasting for a construction project.
-You are given detailed JSON data from three separate tools:
+    You are an AI assistant helping companies find their LEED certification score for LEED v5 certificate tasked with generating a combined insight and forecasting for a construction project.
 
-1. Carbon Emission Insight:
-{json.dumps(carbon, indent=2)}
+    You are required to provide proper LEED certification analysis for the following project:{project}
+    
+    Please analyze all data and provide a combined JSON output with:
+    
+    - A human-readable combined insight summary containing two parts
+        1. LEED score for choosen LEED certification by the user and current data available will be value for key "score" and reason for its calculation will be value of key "reasons", reasons value will be list of strings.
+        2. Suggestions for improving all factors to maximise LEED score and then predicted LEED score once user follows all suggestion properly. Here also provide result in two keys 'score' and 'reasons'. Similar to above point.
+    - In forecasting make sure no past year is provide , forecasting will be made from current year to current year + 1 year
+    - In the final insight also add the percentage reduction or increase in cost if adviced material are
+     used.
+    - Forecasting information for future emissions, waste, and energy efficiency.
+    - Graph metrics data suitable for bar graphs, pie charts, or line charts, including:
+      - total_carbon_emission (float)
+      - predicted_waste_kg (float)
+      - energy_efficiency_score (float, 0-100)
+      - sustainability_recommendation_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
+      - sustainability_recommendation_grade (str)
+    Note: sustainability_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
+    Return ONLY the JSON response exactly in this format, with no extra text:
+    
+    {{
+      "combined_insight": {{
+        "current_scenario": {{'score': int, 'reasons': list of strings}},
+        "suggestion": {{'score': int, 'reasons': list of strings}}
+      }},
+      "forecasting": {{
+        "carbon_emission_trend": [{{"year": int, "emission": float}}, ...],
+        "waste_trend": [{{"year": int, "waste": float}}, ...],
+        "energy_efficiency_trend": [{{"year": int, "score": float}}, ...]
+      }},
+      "graph_metrics": {{
+        "total_carbon_emission": float,
+        "predicted_waste_kg": float,
+        "energy_efficiency_score": float,
+        "sustainability_recommendation_score": int,
+        "sustainability_recommendation_grade": string
+      }}
+    }}
+    """
 
-2. Waste Reduction Insight:
-{json.dumps(waste, indent=2)}
-
-3. Design Tool Insight:
-{json.dumps(design, indent=2)}
-
-Please analyze all data and provide a combined JSON output with:
-
-- A human-readable combined insight summary containing two parts
-    1. LEED score according to current practise and current data available will be value for key "score" and reason for its calculation will be value of key "reasons", reasons value will be list of strings.
-    2. Suggestions for improving all factors to maximise LEED score and then predicted LEED score once user follows all suggestion properly. Here also provide result in two keys 'score' and 'reasons'. Similar to above point.
-- In forecasting make sure no past year is provide , forecasting will be made from current year to current year + 1 year
-- In the final insight also add the percentage reduction or increase in cost if adviced material are
- used.
-- Forecasting information for future emissions, waste, and energy efficiency.
-- Graph metrics data suitable for bar graphs, pie charts, or line charts, including:
-  - total_carbon_emission (float)
-  - predicted_waste_kg (float)
-  - energy_efficiency_score (float, 0-100)
-  - sustainability_recommendation_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
-  - sustainability_recommendation_grade (str)
-Note: sustainability_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
-Return ONLY the JSON response exactly in this format, with no extra text:
-
-{{
-  "combined_insight": {{
-    "current_scenario": {{'score': int, 'reasons': list of strings}},
-    "suggestion": {{'score': int, 'reasons': list of strings}}
-  }},
-  "forecasting": {{
-    "carbon_emission_trend": [{{"year": int, "emission": float}}, ...],
-    "waste_trend": [{{"year": int, "waste": float}}, ...],
-    "energy_efficiency_trend": [{{"year": int, "score": float}}, ...]
-  }},
-  "graph_metrics": {{
-    "total_carbon_emission": float,
-    "predicted_waste_kg": float,
-    "energy_efficiency_score": float,
-    "sustainability_recommendation_score": int,
-    "sustainability_recommendation_grade": string
-  }}
-}}
-"""
-
-    response = client.models.generate_content(
-    model='gemini-2.0-flash-001', contents=prompt
+    file_path = "LEED Scorecards and Reference Guides"
+    if project.leed_certification == "LEED BD+C(New Construction)":
+        file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
+    elif project.leed_certification == "LEED BD+C(Core and Shell)":
+        file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
+    elif project.leed_certification == "LEED ID+C":
+        file_path += "/LEED v5 ID+C Reference Guide_Launch Edition 1.pdf"
+    elif project.leed_certification == "LEED O+M":
+        file_path += "/LEED v5 O+M Reference Guide_Launch Edition 1.pdf"
+    else:
+        return ""
+    response = analyze_pdf_from_file(
+        file_path=file_path,
+        prompt=prompt
     )
 
     raw_text = response.text.strip()
@@ -401,7 +376,7 @@ Return ONLY the JSON response exactly in this format, with no extra text:
     except json.JSONDecodeError as e:
         print("JSON parse error:", e)
         combined_data = {}
-    print("insight", combined_data.get("insight"))
+    print("insight", combined_data.get("combined_insight"))
     # Save back to project
     project.combined_insight = combined_data.get("combined_insight", "")
     project.combined_forecasting = combined_data.get("forecasting", {})
