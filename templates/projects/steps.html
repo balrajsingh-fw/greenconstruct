@@ -6,52 +6,89 @@
 
 <div class="steps-container">
 
-  <!-- Step 1: Carbon Tool -->
-  <div class="step-box {% if step >= 1 %}active{% else %}disabled{% endif %}">
-    <h4>Step 1: Carbon Tool</h4>
-    {% if step == 1 %}
-      {% include "tools/carbon_tool.html" with formset=carbon_formset %}
+  {% if step == 1 %}
+    <!-- Step 1: Carbon Tool -->
+    <div class="step-box active">
+      <h4>Step 1: Carbon Tool</h4>
       {% if project.current_step > 1 %}
         {% include "tools/carbon_result.html" with breakdown=project.carbon_data total=project.total_emission insight=project.carbon_insight %}
+      {% else %}
+        {% include "tools/carbon_tool.html" with formset=carbon_formset %}
       {% endif %}
-    {% elif step > 1 %}
-      {% include "tools/carbon_result.html" with breakdown=project.carbon_data total=project.total_emission insight=project.carbon_insight %}
-    {% else %}
-      <p>Complete Step 1 to unlock this section</p>
-    {% endif %}
-  </div>
+    </div>
 
-  <!-- Step 2: Waste Tool -->
-  <div class="step-box {% if step >= 2 %}active{% else %}disabled{% endif %}">
-    <h4>Step 2: Waste Tool</h4>
-    {% if step == 2 %}
-      {% include "tools/waste_tool.html" with form=form %}
+  {% elif step == 2 %}
+    <!-- Step 2: Waste Tool -->
+    <div class="step-box active">
+      <h4>Step 2: Waste Tool</h4>
       {% if project.current_step > 2 %}
         {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
+      {% else %}
+        {% include "tools/waste_tool.html" with form=form %}
       {% endif %}
-    {% elif step > 2 %}
-      {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
-    {% else %}
-      <p>Complete previous steps first</p>
-    {% endif %}
-  </div>
+    </div>
 
-  <!-- Step 3: Design Tool -->
-  <div class="step-box {% if step >= 3 %}active{% else %}disabled{% endif %}">
-    <h4>Step 3: Design Tool</h4>
-    {% if step == 3 %}
-      {% include "tools/design_tool.html" %}
-    {% elif step > 3 %}
-      {% include "tools/design_result.html" with data=project.design_data insight=project.design_insight %}
-    {% else %}
-      <p>Complete previous steps first</p>
-    {% endif %}
-  </div>
+  {% elif step == 3 %}
+    <!-- Step 3: Design Tool -->
+    <div class="step-box active">
+      <h4>Step 3: Design Tool</h4>
+      {% if project.current_step > 3 %}
+        {% include "tools/design_result.html" with data=project.design_data insight=project.design_insight %}
+      {% else %}
+        {% include "tools/design_tool.html" %}
+      {% endif %}
+    </div>
+  {% elif step == 4 %}
+  <div class="step-box active">
+        <h4>Final Combined Analysis</h4>
+          <div class="combined-insight-box mb-4">
+    <!-- Current Scenario -->
+    <div class="mb-4">
+      <h5 class="text-danger">Current Scenario</h5>
+      <p><strong>Score:</strong> {{ project.combined_insight.current_scenario.score }}</p>
+      <ul>
+        {% for reason in project.combined_insight.current_scenario.reasons %}
+          <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- Suggested Improvements -->
+    <div>
+      <h5 class="text-success">Suggested Improvements</h5>
+      <p><strong>Score:</strong> {{ project.combined_insight.suggestion.score }}</p>
+      <ul>
+        {% for reason in project.combined_insight.suggestion.reasons %}
+          <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+        <!-- Forecasting Trends -->
+        <div class="row mt-5">
+          <div class="col-md-12">
+            <h5>Forecasting Trends</h5>
+            <canvas id="forecastChart" style="max-width: 700px;"></canvas>
+          </div>
+        </div>
+
+        <!-- Metrics Summary -->
+        <div class="row mt-5">
+          <div class="col-md-6">
+            <h5>Graph Metrics Summary</h5>
+            <canvas id="metricsChart" style="max-width: 700px;"></canvas>
+          </div>
+        </div>
+        </div>
+      </div>
+
+  {{ project.combined_forecasting|json_script:"forecast-data" }}
+{{ project.graph_metrics|json_script:"metrics-data" }}
+  {% endif %}
 
 </div>
 
 <!-- Navigation Buttons -->
-<div class="navigation-buttons mt-3">
+<div class="navigation-buttons mt-3" style="display: flex; justify-content: space-between">
   {% if step > 1 %}
     <a href="{% url 'project_step' project_id=project.id step=step|add:'-1' %}" class="btn btn-secondary">← Previous Step</a>
   {% endif %}
@@ -87,4 +124,134 @@
     background: #e7f1ff;
   }
 </style>
+
+<script>
+  {% if project.current_step == 4 %}
+  const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
+  const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
+
+  // Forecasting Trends Line Chart
+  const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+  new Chart(forecastCtx, {
+    type: 'line',
+    data: {
+      labels: forecastData.carbon_emission_trend.map(d => d.year),
+      datasets: [
+        {
+          label: 'Carbon Emissions (kg CO₂)',
+          data: forecastData.carbon_emission_trend.map(d => d.emission),
+          borderColor: '#36A2EB',
+          backgroundColor: 'rgba(54,162,235,0.2)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Waste (kg)',
+          data: forecastData.waste_trend.map(d => d.waste),
+          borderColor: '#FF6384',
+          backgroundColor: 'rgba(255,99,132,0.2)',
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Energy Efficiency (%)',
+          data: forecastData.energy_efficiency_trend.map(d => d.score),
+          borderColor: '#4BC0C0',
+          backgroundColor: 'rgba(75,192,192,0.2)',
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+
+  // Metrics Bar Chart
+  const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+  const cappedData = metrics.total_carbon_emission > 1000 ? metrics.total_carbon_emission : metrics.total_carbon_emission;
+const cappedWaste = metrics.predicted_waste_kg > 1000 ? metrics.predicted_waste_kg : metrics.predicted_waste_kg;
+const cappedEnergy = metrics.energy_efficiency_score > 1000 ? metrics.energy_efficiency_score : metrics.energy_efficiency_score;
+
+new Chart(metricsCtx, {
+  type: 'bar',
+  data: {
+    labels: [
+      'Total Carbon Emission',
+      'Predicted Waste (kg)',
+      'Energy Efficiency (%)',
+      'USGBC LEED Score'
+    ],
+    datasets: [{
+      label: 'Main Metrics',
+      data: [
+        cappedData,
+        cappedWaste,
+        cappedEnergy,
+        null // skip LEED here
+      ],
+      backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
+      xAxisID: 'xMain'
+    }, {
+      label: 'USGBC LEED Score',
+      data: [null, null, null, metrics.sustainability_recommendation_score],
+      backgroundColor: [null, null, null, '#FFCE56'],
+      xAxisID: 'xSecondary'
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    scales: {
+      xMain: {
+        type: 'linear',
+        position: 'top',
+        beginAtZero: true,
+        max: 1000,
+        title: { display: true, text: 'Main Metrics Scale' }
+      },
+      xSecondary: {
+        type: 'linear',
+        position: 'bottom',
+        beginAtZero: true,
+        min: 0,
+        max: 110,
+        grid: { drawOnChartArea: false },
+        title: { display: true, text: 'USGBC LEED Score' }
+      }
+    },
+    plugins: {
+      legend: { display: true },
+      tooltip: {
+        enabled: true,
+        callbacks: {
+          label: function(context) {
+            const label = context.dataset.label || '';
+            if (label === 'USGBC LEED Score') {
+              return `USGBC LEED Score: ${context.raw} (Grade: ${metrics.sustainability_recommendation_grade})`;
+            }
+            // For main metrics, show real value even if capped in chart
+            const originalValues = {
+              'Total Carbon Emission': metrics.total_carbon_emission,
+              'Predicted Waste (kg)': metrics.predicted_waste_kg,
+              'Energy Efficiency (%)': metrics.energy_efficiency_score
+            };
+            if (originalValues[label]) {
+              return `${label}: ${originalValues[label]}`;
+            }
+            return `${label}: ${context.raw}`;
+          }
+        }
+      }
+    }
+  }
+});
+
+
+  {% endif %}
+</script>
 {% endblock %}

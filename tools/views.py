@@ -210,7 +210,7 @@ def design_tool(request, project_id):
         project.graph_metrics = combined_insight['graph_metrics']
         project.save()
 
-        return redirect('project_detail', project_id=project.id)
+        return redirect('project_step', project_id=project.id, step=4)
 
     return render(request, 'tools/design_tool.html', {'project': project})
 
@@ -464,13 +464,6 @@ def project_list(request):
     projects = Project.objects.all().order_by('-created_at')
     return render(request, 'projects/list.html', {'projects': projects})
 
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
-
-    return render(request, 'projects/detail.html', {
-        'project': project
-    })
-
 # Handle step-wise form filling for project
 def project_step(request, project_id, step):
     project = get_object_or_404(Project, id=project_id)
@@ -560,7 +553,7 @@ def project_step(request, project_id, step):
                 project.current_step = 4
             project.save()
 
-            return redirect('project_detail', project_id=project.id)
+            return redirect('project_step', project_id=project.id, step=4)
 
     else:
         # GET request: render the correct step's form or data
@@ -572,7 +565,7 @@ def project_step(request, project_id, step):
             context['form'] = WasteReductionForm()
             context['material'] = project.carbon_data
             context['project'] = project
-        elif step == 3:
+        else:
             context['project'] = project  # contains previous design data if any
 
     return render(request, 'projects/steps.html', context)
