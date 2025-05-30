@@ -3,6 +3,24 @@
 {% block content %}
 <h2>📁 Project Gallery: {{ project.name }}</h2>
 
+<!-- Add Document Form -->
+<form method="post" enctype="multipart/form-data" class="mb-4">
+  {% csrf_token %}
+  <div class="row align-items-end">
+    <div class="col-md-4">
+      <label for="id_title" class="form-label">Document Title</label>
+      <input type="text" name="title" id="id_title" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <label for="id_file" class="form-label">Upload File</label>
+      <input type="file" name="file" id="id_file" class="form-control" required>
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-success">➕ Add Document</button>
+    </div>
+  </div>
+</form>
+
 <div class="row">
   {% if documents %}
     {% for doc in documents %}

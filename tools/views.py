@@ -2,9 +2,10 @@ import json
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
-from .models import Material, Project, BuildingType
+from .models import Material, Project, BuildingType, Document
 from .forms import *
 import google.generativeai as genai
+from django.contrib import messages
 
 MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
 
@@ -573,4 +574,14 @@ def project_step(request, project_id, step):
 def project_gallery(request, project_id):
     project = get_object_or_404(Project, id=project_id)
     documents = project.documents.all()  # assuming a related name like `documents`
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        file = request.FILES.get('file')
+
+        if title and file:
+            Document.objects.create(project=project, title=title, file=file)
+            messages.success(request, "Document uploaded successfully!")
+            return redirect('project_gallery', project_id=project.id)
+        else:
+            messages.error(request, "Both title and file are required.")
     return render(request, 'projects/gallery.html', {'project': project, 'documents': documents})
