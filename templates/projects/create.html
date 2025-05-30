@@ -20,6 +20,30 @@
       <label for="name"><strong>Project Name</strong></label>
       <input type="text" id="name" name="name" class="form-control" required />
     </div>
+    <div class="form-group mb-3">
+  <label for="leed_certification"><strong>LEED Certification</strong></label>
+  <select id="leed_certification" name="leed_certification" class="form-control" required>
+    <option value="">-- Select LEED Type --</option>
+    <option value="LEED BD+C">LEED BD+C (Building Design and Construction)</option>
+    <option value="LEED ID+C">LEED ID+C (Interior Design and Construction)</option>
+    <option value="LEED O+M">LEED O+M (Operations and Maintenance)</option>
+    <option value="LEED ND">LEED ND (Neighborhood Development)</option>
+    <option value="LEED Homes">LEED Homes</option>
+    <option value="LEED Cities and Communities">LEED Cities and Communities</option>
+  </select>
+</div>
+
+<div class="form-group mb-3">
+  <label for="well_certification"><strong>WELL Certification</strong></label>
+  <select id="well_certification" name="well_certification" class="form-control" required>
+    <option value="">-- Select WELL Type --</option>
+    <option value="WELL v2">WELL Building Standard (WELL v2)</option>
+    <option value="WELL Core">WELL Core</option>
+    <option value="WELL Interiors">WELL Interiors</option>
+    <option value="WELL Community">WELL Community</option>
+    <option value="WELL Portfolio">WELL Portfolio</option>
+  </select>
+</div>
 
     <!-- Material Formset -->
     <div id="formset-container">

@@ -416,6 +416,8 @@ def project_create(request):
         city = request.POST.get("city")
         country = request.POST.get("country")
         building_type = request.POST.get("building_type")
+        well_certification = request.POST.get("well_certification")
+        leed_certification = request.POST.get("leed_certification")
         name = request.POST.get("name")
         if formset.is_valid():
             total_emission = 0
@@ -444,6 +446,8 @@ def project_create(request):
                 building_type=building_type,
                 carbon_insight=insight,
                 name=name,
+                leed_certification=leed_certification,
+                well_certification=well_certification,
                 current_step=2  # Step 1 done, move to step 2
             )
             return redirect('project_step', project_id=project.id, step=2)

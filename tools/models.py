@@ -16,6 +16,8 @@ class Project(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     building_type = models.CharField(max_length=100, blank=True, null=True)
+    leed_certification = models.CharField(max_length=100, blank=True, null=True)
+    well_certification = models.CharField(max_length=100, blank=True, null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
