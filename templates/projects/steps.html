@@ -11,6 +11,9 @@
     <h4>Step 1: Carbon Tool</h4>
     {% if step == 1 %}
       {% include "tools/carbon_tool.html" with formset=carbon_formset %}
+      {% if project.current_step > 1 %}
+        {% include "tools/carbon_result.html" with breakdown=project.carbon_data total=project.total_emission insight=project.carbon_insight %}
+      {% endif %}
     {% elif step > 1 %}
       {% include "tools/carbon_result.html" with breakdown=project.carbon_data total=project.total_emission insight=project.carbon_insight %}
     {% else %}
@@ -23,6 +26,9 @@
     <h4>Step 2: Waste Tool</h4>
     {% if step == 2 %}
       {% include "tools/waste_tool.html" with form=form %}
+      {% if project.current_step > 2 %}
+        {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
+      {% endif %}
     {% elif step > 2 %}
       {% include "tools/waste_result.html" with data=project.waste_data insight=project.waste_insight %}
     {% else %}

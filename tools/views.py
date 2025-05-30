@@ -567,9 +567,11 @@ def project_step(request, project_id, step):
         if step == 1:
             context['formset'] = MaterialFormSet()
             context['materials'] = Material.objects.all()
+            context['project'] = project
         elif step == 2:
             context['form'] = WasteReductionForm()
             context['material'] = project.carbon_data
+            context['project'] = project
         elif step == 3:
             context['project'] = project  # contains previous design data if any
 
