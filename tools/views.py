@@ -1,4 +1,7 @@
 import json
+import re
+
+from difflib import get_close_matches
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
@@ -256,8 +259,8 @@ def generate_leed_certification_insight(project):
     if project.leed_certification == "LEED BD+C(New Construction)":
         scorecard_json = {
                               "Integrative Process, Planning and Assessments (IP)": {
-                                "points": 1,
-                                "items": {
+                                "total_points": 1,
+                                "criteria": {
                                   "IPp1": { "name": "Climate Resilience Assessment", "points": "Required" },
                                   "IPp2": { "name": "Human Impact Assessment", "points": "Required" },
                                   "IPp3": { "name": "Carbon Assessment", "points": "Required" },
@@ -265,8 +268,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Location and Transportation (LT)": {
-                                "points": 15,
-                                "items": {
+                                "total_points": 15,
+                                "criteria": {
                                   "LTc1": { "name": "Sensitive Land Protection", "points": 1 },
                                   "LTc2": { "name": "Equitable Development", "points": 2 },
                                   "LTc3": { "name": "Compact and Connected Development", "points": 6 },
@@ -275,8 +278,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Sustainable Sites (SS)": {
-                                "points": 11,
-                                "items": {
+                                "total_points": 11,
+                                "criteria": {
                                   "SSp1": { "name": "Minimize Site Disturbance", "points": "Required" },
                                   "SSc1": { "name": "Biodiverse Habitat", "points": 2 },
                                   "SSc2": { "name": "Accessible Outdoor Space", "points": 1 },
@@ -287,8 +290,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Water Efficiency (WE)": {
-                                "points": 9,
-                                "items": {
+                                "total_points": 9,
+                                "criteria": {
                                   "WEp1": { "name": "Water Metering and Reporting", "points": "Required" },
                                   "WEp2": { "name": "Minimum Water Efficiency", "points": "Required" },
                                   "WEc1": { "name": "Water Metering and Leak Detection", "points": 1 },
@@ -296,8 +299,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Energy and Atmosphere (EA)": {
-                                "points": 33,
-                                "items": {
+                                "total_points": 33,
+                                "criteria": {
                                   "EAp1": { "name": "Operational Carbon Projection and Decarbonization Plan", "points": "Required" },
                                   "EAp2": { "name": "Minimum Energy Efficiency", "points": "Required" },
                                   "EAp3": { "name": "Fundamental Commissioning", "points": "Required" },
@@ -313,8 +316,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Materials and Resources (MR)": {
-                                "points": 18,
-                                "items": {
+                                "total_points": 18,
+                                "criteria": {
                                   "MRp1": { "name": "Planning for Zero Waste Operations", "points": "Required" },
                                   "MRp2": { "name": "Quantify and Assess Embodied Carbon", "points": "Required" },
                                   "MRc1": { "name": "Building and Materials Reuse", "points": 3 },
@@ -325,8 +328,8 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Indoor Environmental Quality (EQ)": {
-                                "points": 13,
-                                "items": {
+                                "total_points": 13,
+                                "criteria": {
                                   "EQp1": { "name": "Construction Management", "points": "Required" },
                                   "EQp2": { "name": "Fundamental Air Quality", "points": "Required" },
                                   "EQp3": { "name": "No Smoking or Vehicle Idling", "points": "Required" },
@@ -338,21 +341,21 @@ def generate_leed_certification_insight(project):
                                 }
                               },
                               "Project Priorities (PR)": {
-                                "points": 10,
-                                "items": {
+                                "total_points": 10,
+                                "criteria": {
                                   "PRc1": { "name": "Project Priorities", "points": 9 },
                                   "PRc2": { "name": "LEED AP", "points": 1 }
                                 }
                               },
-                              "Total Points": 110
+                              "total_points": 110
                         }
 
         file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
     elif project.leed_certification == "LEED BD+C(Core and Shell)":
         scorecard_json = {
             "Integrative Process, Planning and Assessments (IP)": {
-                "points": 7,
-                "items": {
+                "total_points": 7,
+                "criteria": {
                     "IPp1": {"name": "Climate Resilience Assessment", "points": "Required"},
                     "IPp2": {"name": "Human Impact Assessment", "points": "Required"},
                     "IPp3": {"name": "Carbon Assessment", "points": "Required"},
@@ -362,8 +365,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Location and Transportation (LT)": {
-                "points": 15,
-                "items": {
+                "total_points": 15,
+                "criteria": {
                     "LTc1": {"name": "Sensitive Land Protection", "points": 1},
                     "LTc2": {"name": "Equitable Development", "points": 2},
                     "LTc3": {"name": "Compact and Connected Development", "points": 6},
@@ -372,8 +375,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Sustainable Sites (SS)": {
-                "points": 11,
-                "items": {
+                "total_points": 11,
+                "criteria": {
                     "SSp1": {"name": "Minimize Site Disturbance", "points": "Required"},
                     "SSc1": {"name": "Biodiverse Habitat", "points": 2},
                     "SSc2": {"name": "Accessible Outdoor Space", "points": 1},
@@ -384,8 +387,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Water Efficiency (WE)": {
-                "points": 8,
-                "items": {
+                "total_points": 8,
+                "criteria": {
                     "WEp1": {"name": "Water Metering and Reporting", "points": "Required"},
                     "WEp2": {"name": "Minimum Water Efficiency", "points": "Required"},
                     "WEc1": {"name": "Water Metering and Leak Detection", "points": 1},
@@ -393,8 +396,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Energy and Atmosphere (EA)": {
-                "points": 27,
-                "items": {
+                "total_points": 27,
+                "criteria": {
                     "EAp1": {"name": "Operational Carbon Projection and Decarbonization Plan", "points": "Required"},
                     "EAp2": {"name": "Minimum Energy Efficiency", "points": "Required"},
                     "EAp3": {"name": "Fundamental Commissioning", "points": "Required"},
@@ -410,8 +413,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Materials and Resources (MR)": {
-                "points": 21,
-                "items": {
+                "total_points": 21,
+                "criteria": {
                     "MRp1": {"name": "Planning for Zero Waste Operations", "points": "Required"},
                     "MRp2": {"name": "Quantify and Assess Embodied Carbon", "points": "Required"},
                     "MRc1": {"name": "Building and Materials Reuse", "points": 5},
@@ -422,8 +425,8 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Indoor Environmental Quality (EQ)": {
-                "points": 11,
-                "items": {
+                "total_points": 11,
+                "criteria": {
                     "EQp1": {"name": "Construction Management", "points": "Required"},
                     "EQp2": {"name": "Fundamental Air Quality", "points": "Required"},
                     "EQp3": {"name": "No Smoking or Vehicle Idling", "points": "Required"},
@@ -435,13 +438,13 @@ def generate_leed_certification_insight(project):
                 }
             },
             "Project Priorities (PR)": {
-                "points": 10,
-                "items": {
+                "total_points": 10,
+                "criteria": {
                     "PRc1": {"name": "Project Priorities", "points": 9},
                     "PRc2": {"name": "LEED AP", "points": 1}
                 }
             },
-            "Total Points": 110
+            "total_points": 110
         }
         file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
     elif project.leed_certification == "LEED ID+C":
@@ -608,7 +611,7 @@ def generate_leed_certification_insight(project):
     else:
         return ""
 
-    prompt += f"This is the scorecard for this category {scorecard_json}"
+    prompt += f"This is the scorecard for this category, make sure the keys you provide for leed scorecard should be exactly matching with this json just modify the values according to actual values based on current data we have {scorecard_json}"
     response = analyze_pdf_from_file(
         file_path=file_path,
         prompt=prompt
@@ -635,67 +638,41 @@ def generate_leed_certification_insight(project):
 
     return combined_data
 
+def is_number(value):
+    return isinstance(value, (int, float))
+
 
 def download_leed_scorecard(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+    leed_scorecard = project.leed_scorecard  # Replace this with your JSON source
 
-    leed_scorecard = project.leed_scorecard
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "LEED Scorecard"
 
-    file_path = "LEED Scorecards and Reference Guides"
-    scorecard_file_path = ""
-    if project.leed_certification == "LEED BD+C(New Construction)":
-        scorecard_file_path = file_path + "/LEED_v5_Scorecard_BDC_New_Construction.xlsx"
-    elif project.leed_certification == "LEED BD+C(Core and Shell)":
-        scorecard_file_path = file_path + "/LEED_v5_Scorecard_BDC_Core_and_Shell.xlsx"
-    elif project.leed_certification == "LEED ID+C":
-        scorecard_file_path = file_path + "/LEED_v5_Scorecard_IDC.xlsx"
-    elif project.leed_certification == "LEED O+M":
-        scorecard_file_path = file_path + "/LEED_v5_Scorecard_OM.xlsx"
-    else:
-        return ""
+    # Header
+    ws.append(["Category", "Total Points", "Criterion Code", "Criterion Name", "Points"])
 
-    workbook = load_workbook(scorecard_file_path)
-    sheet = workbook.active
-
-    current_category = None
-
-    for row in sheet.iter_rows():
-        row_values = [str(cell.value).strip() if cell.value is not None else "" for cell in row]
-        row_text = " | ".join(row_values)
-
-        # Detect category header
-        for category in leed_scorecard.keys():
-            if category in row_text:
-                current_category = category
-                # Update total points in last cell
-                if "total_points" in leed_scorecard[category]:
-                    row[-1].value = leed_scorecard[category]["total_points"]
-                break  # only one category per row
-
-        # Skip if no active category
-        if not current_category:
+    for category, content in leed_scorecard.items():
+        if is_number(content):
             continue
+        total_points = content.get("total_points", None)
+        criteria = content.get("criteria", {})
 
-        # Update individual criteria points
-        for key, value in leed_scorecard[current_category].items():
-            if key == "total_points":
-                continue
-            if key.lower() in row_text.lower():
-                # Write value in last cell of the row
-                row[-1].value = value
-                break
+        for full_key, point_value in criteria.items():
+            ws.append([category, total_points, full_key, point_value.get("name"),
+                       point_value.get("points")])
 
-    # Save to a memory stream
+    # Save Excel to memory
     file_stream = io.BytesIO()
-    workbook.save(file_stream)
+    wb.save(file_stream)
     file_stream.seek(0)
 
-    # Return as downloadable Excel file
     response = HttpResponse(
         file_stream,
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
-    response['Content-Disposition'] = 'attachment; filename=leed_v5_scorecard.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=leed_scorecard.xlsx'
     return response
 
 
