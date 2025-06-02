@@ -214,6 +214,8 @@ def generate_leed_certification_insight(project):
       - leed_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
       - leed_recommendation_grade (str)
     Note: leed_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
+    - To justify the current score you ahve provided also provide the scorecard details in key 'scorecard' so that user can check in which categories they have received or not received any score.
+    - Scorecard has been provided to you in json format with max points for each category, whatever current score you provide you also need to modify the scorecard so that the score you have provided is justified. All the keys mentioned in that scorecard should be available in the scorecard json provided by you.
     Return ONLY the JSON response exactly in this format, with no extra text:
     
     {{
@@ -232,21 +234,380 @@ def generate_leed_certification_insight(project):
         "energy_efficiency_score": float,
         "sustainability_recommendation_score": int,
         "sustainability_recommendation_grade": string
+      }},
+      "scorecard": {{
+        "Integrative Process, Planning and Assessments (IP): {{ 
+            "integrative_design_process": int,
+            "green_leases": int 
+        }},
+        "Location and Transportation": {{
+            "Sensitive Land Protection": int,
+            ...and so on
+        }},... and so on
       }}
     }}
     """
 
     file_path = "LEED Scorecards and Reference Guides"
+    scorecard_json = {}
     if project.leed_certification == "LEED BD+C(New Construction)":
+        scorecard_json = {
+                              "Integrative Process, Planning and Assessments (IP)": {
+                                "points": 1,
+                                "items": {
+                                  "IPp1": { "name": "Climate Resilience Assessment", "points": "Required" },
+                                  "IPp2": { "name": "Human Impact Assessment", "points": "Required" },
+                                  "IPp3": { "name": "Carbon Assessment", "points": "Required" },
+                                  "IPc1": { "name": "Integrative Design Process", "points": 1 }
+                                }
+                              },
+                              "Location and Transportation (LT)": {
+                                "points": 15,
+                                "items": {
+                                  "LTc1": { "name": "Sensitive Land Protection", "points": 1 },
+                                  "LTc2": { "name": "Equitable Development", "points": 2 },
+                                  "LTc3": { "name": "Compact and Connected Development", "points": 6 },
+                                  "LTc4": { "name": "Transportation Demand Management", "points": 4 },
+                                  "LTc5": { "name": "Electric Vehicles", "points": 2 }
+                                }
+                              },
+                              "Sustainable Sites (SS)": {
+                                "points": 11,
+                                "items": {
+                                  "SSp1": { "name": "Minimize Site Disturbance", "points": "Required" },
+                                  "SSc1": { "name": "Biodiverse Habitat", "points": 2 },
+                                  "SSc2": { "name": "Accessible Outdoor Space", "points": 1 },
+                                  "SSc3": { "name": "Rainwater Management", "points": 3 },
+                                  "SSc4": { "name": "Enhanced Resilient Site Design", "points": 2 },
+                                  "SSc5": { "name": "Heat Island Reduction", "points": 2 },
+                                  "SSc6": { "name": "Light Pollution Reduction", "points": 1 }
+                                }
+                              },
+                              "Water Efficiency (WE)": {
+                                "points": 9,
+                                "items": {
+                                  "WEp1": { "name": "Water Metering and Reporting", "points": "Required" },
+                                  "WEp2": { "name": "Minimum Water Efficiency", "points": "Required" },
+                                  "WEc1": { "name": "Water Metering and Leak Detection", "points": 1 },
+                                  "WEc2": { "name": "Enhanced Water Efficiency", "points": 8 }
+                                }
+                              },
+                              "Energy and Atmosphere (EA)": {
+                                "points": 33,
+                                "items": {
+                                  "EAp1": { "name": "Operational Carbon Projection and Decarbonization Plan", "points": "Required" },
+                                  "EAp2": { "name": "Minimum Energy Efficiency", "points": "Required" },
+                                  "EAp3": { "name": "Fundamental Commissioning", "points": "Required" },
+                                  "EAp4": { "name": "Energy Metering and Reporting", "points": "Required" },
+                                  "EAp5": { "name": "Fundamental Refrigerant Management", "points": "Required" },
+                                  "EAc1": { "name": "Electrification", "points": 5 },
+                                  "EAc2": { "name": "Reduce Peak Thermal Loads", "points": 5 },
+                                  "EAc3": { "name": "Enhanced Energy Efficiency", "points": 10 },
+                                  "EAc4": { "name": "Renewable Energy", "points": 5 },
+                                  "EAc5": { "name": "Enhanced Commissioning", "points": 4 },
+                                  "EAc6": { "name": "Grid Interactive", "points": 2 },
+                                  "EAc7": { "name": "Enhanced Refrigerant Management", "points": 2 }
+                                }
+                              },
+                              "Materials and Resources (MR)": {
+                                "points": 18,
+                                "items": {
+                                  "MRp1": { "name": "Planning for Zero Waste Operations", "points": "Required" },
+                                  "MRp2": { "name": "Quantify and Assess Embodied Carbon", "points": "Required" },
+                                  "MRc1": { "name": "Building and Materials Reuse", "points": 3 },
+                                  "MRc2": { "name": "Reduce Embodied Carbon", "points": 6 },
+                                  "MRc3": { "name": "Low-Emitting Materials", "points": 2 },
+                                  "MRc4": { "name": "Building Product Selection and Procurement", "points": 5 },
+                                  "MRc5": { "name": "Construction and Demolition Waste Diversion", "points": 2 }
+                                }
+                              },
+                              "Indoor Environmental Quality (EQ)": {
+                                "points": 13,
+                                "items": {
+                                  "EQp1": { "name": "Construction Management", "points": "Required" },
+                                  "EQp2": { "name": "Fundamental Air Quality", "points": "Required" },
+                                  "EQp3": { "name": "No Smoking or Vehicle Idling", "points": "Required" },
+                                  "EQc1": { "name": "Enhanced Air Quality", "points": 1 },
+                                  "EQc2": { "name": "Occupant Experience", "points": 7 },
+                                  "EQc3": { "name": "Accessibility and Inclusion", "points": 1 },
+                                  "EQc4": { "name": "Resilient Spaces", "points": 2 },
+                                  "EQc5": { "name": "Air Quality Testing and Monitoring", "points": 2 }
+                                }
+                              },
+                              "Project Priorities (PR)": {
+                                "points": 10,
+                                "items": {
+                                  "PRc1": { "name": "Project Priorities", "points": 9 },
+                                  "PRc2": { "name": "LEED AP", "points": 1 }
+                                }
+                              },
+                              "Total Points": 110
+                        }
+
         file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
     elif project.leed_certification == "LEED BD+C(Core and Shell)":
+        scorecard_json = {
+            "Integrative Process, Planning and Assessments (IP)": {
+                "points": 7,
+                "items": {
+                    "IPp1": {"name": "Climate Resilience Assessment", "points": "Required"},
+                    "IPp2": {"name": "Human Impact Assessment", "points": "Required"},
+                    "IPp3": {"name": "Carbon Assessment", "points": "Required"},
+                    "IPp4": {"name": "Tenant Guidelines", "points": "Required"},
+                    "IPc1": {"name": "Integrative Design Process", "points": 1},
+                    "IPc2": {"name": "Green Leases", "points": 6}
+                }
+            },
+            "Location and Transportation (LT)": {
+                "points": 15,
+                "items": {
+                    "LTc1": {"name": "Sensitive Land Protection", "points": 1},
+                    "LTc2": {"name": "Equitable Development", "points": 2},
+                    "LTc3": {"name": "Compact and Connected Development", "points": 6},
+                    "LTc4": {"name": "Transportation Demand Management", "points": 4},
+                    "LTc5": {"name": "Electric Vehicles", "points": 2}
+                }
+            },
+            "Sustainable Sites (SS)": {
+                "points": 11,
+                "items": {
+                    "SSp1": {"name": "Minimize Site Disturbance", "points": "Required"},
+                    "SSc1": {"name": "Biodiverse Habitat", "points": 2},
+                    "SSc2": {"name": "Accessible Outdoor Space", "points": 1},
+                    "SSc3": {"name": "Rainwater Management", "points": 3},
+                    "SSc4": {"name": "Enhanced Resilient Site Design", "points": 2},
+                    "SSc5": {"name": "Heat Island Reduction", "points": 2},
+                    "SSc6": {"name": "Light Pollution Reduction", "points": 1}
+                }
+            },
+            "Water Efficiency (WE)": {
+                "points": 8,
+                "items": {
+                    "WEp1": {"name": "Water Metering and Reporting", "points": "Required"},
+                    "WEp2": {"name": "Minimum Water Efficiency", "points": "Required"},
+                    "WEc1": {"name": "Water Metering and Leak Detection", "points": 1},
+                    "WEc2": {"name": "Enhanced Water Efficiency", "points": 7}
+                }
+            },
+            "Energy and Atmosphere (EA)": {
+                "points": 27,
+                "items": {
+                    "EAp1": {"name": "Operational Carbon Projection and Decarbonization Plan", "points": "Required"},
+                    "EAp2": {"name": "Minimum Energy Efficiency", "points": "Required"},
+                    "EAp3": {"name": "Fundamental Commissioning", "points": "Required"},
+                    "EAp4": {"name": "Energy Metering and Reporting", "points": "Required"},
+                    "EAp5": {"name": "Fundamental Refrigerant Management", "points": "Required"},
+                    "EAc1": {"name": "Electrification", "points": 4},
+                    "EAc2": {"name": "Reduce Peak Thermal Loads", "points": 5},
+                    "EAc3": {"name": "Enhanced Energy Efficiency", "points": 7},
+                    "EAc4": {"name": "Renewable Energy", "points": 4},
+                    "EAc5": {"name": "Enhanced Commissioning", "points": 3},
+                    "EAc6": {"name": "Grid Interactive", "points": 2},
+                    "EAc7": {"name": "Enhanced Refrigerant Management", "points": 2}
+                }
+            },
+            "Materials and Resources (MR)": {
+                "points": 21,
+                "items": {
+                    "MRp1": {"name": "Planning for Zero Waste Operations", "points": "Required"},
+                    "MRp2": {"name": "Quantify and Assess Embodied Carbon", "points": "Required"},
+                    "MRc1": {"name": "Building and Materials Reuse", "points": 5},
+                    "MRc2": {"name": "Reduce Embodied Carbon", "points": 8},
+                    "MRc3": {"name": "Low-Emitting Materials", "points": 1},
+                    "MRc4": {"name": "Building Product Selection and Procurement", "points": 5},
+                    "MRc5": {"name": "Construction and Demolition Waste Diversion", "points": 2}
+                }
+            },
+            "Indoor Environmental Quality (EQ)": {
+                "points": 11,
+                "items": {
+                    "EQp1": {"name": "Construction Management", "points": "Required"},
+                    "EQp2": {"name": "Fundamental Air Quality", "points": "Required"},
+                    "EQp3": {"name": "No Smoking or Vehicle Idling", "points": "Required"},
+                    "EQc1": {"name": "Enhanced Air Quality", "points": 1},
+                    "EQc2": {"name": "Occupant Experience", "points": 7},
+                    "EQc3": {"name": "Accessibility and Inclusion", "points": 1},
+                    "EQc4": {"name": "Resilient Spaces", "points": 2},
+                    "EQc5": {"name": "Air Quality Testing and Monitoring", "points": 0}
+                }
+            },
+            "Project Priorities (PR)": {
+                "points": 10,
+                "items": {
+                    "PRc1": {"name": "Project Priorities", "points": 9},
+                    "PRc2": {"name": "LEED AP", "points": 1}
+                }
+            },
+            "Total Points": 110
+        }
         file_path += "/LEED v5 BD+C Reference Guide_Launch Edition.pdf"
     elif project.leed_certification == "LEED ID+C":
+        scorecard_json = {
+                              "Integrative Process, Planning, and Assessments (IP)": {
+                                "total_points": 1,
+                                "criteria": {
+                                  "IPp1 Climate Resilience Assessment": "Required",
+                                  "IPp2 Human Impact Assessment": "Required",
+                                  "IPp3 Carbon Assessment": "Required",
+                                  "IPc1 Integrative Design Process": 1
+                                }
+                              },
+                              "Location and Transportation (LT)": {
+                                "total_points": 14,
+                                "criteria": {
+                                  "LTc1 Compact and Connected Development": 8,
+                                  "LTc2 Transportation Demand Management": 4,
+                                  "LTc3 Electric Vehicles": 2
+                                }
+                              },
+                              "Water Efficiency (WE)": {
+                                "total_points": 10,
+                                "criteria": {
+                                  "WEp1 Minimum Water Efficiency": "Required",
+                                  "WEc1 Water Metering and Leak Detection": 2,
+                                  "WEc2 Enhanced Water Efficiency": 8
+                                }
+                              },
+                              "Energy and Atmosphere (EA)": {
+                                "total_points": 31,
+                                "criteria": {
+                                  "EAp1 Estimated Energy Use and Operational Carbon Projection": "Required",
+                                  "EAp2 Minimum Energy Efficiency": "Required",
+                                  "EAp3 Fundamental Commissioning": "Required",
+                                  "EAp4 Energy Metering and Reporting": "Required",
+                                  "EAp5 Fundamental Refrigerant Management": "Required",
+                                  "EAc1 Electrification": 5,
+                                  "EAc2 Enhanced Energy Efficiency": 12,
+                                  "EAc3 Renewable Energy": 5,
+                                  "EAc4 Enhanced Commissioning": 4,
+                                  "EAc5 Grid Interactive": 3,
+                                  "EAc6 Enhanced Refrigerant Management": 2
+                                }
+                              },
+                              "Materials and Resources (MR)": {
+                                "total_points": 26,
+                                "criteria": {
+                                  "MRp1 Planning for Zero Waste Operations": "Required",
+                                  "MRp2 Quantify and Assess Embodied Carbon": "Required",
+                                  "MRc1 Interior Materials Reuse": 4,
+                                  "MRc2 Reduce Embodied Carbon": 4,
+                                  "MRc3 Low-Emitting Materials": 4,
+                                  "MRc4 Building Product Selection and Procurement": 10,
+                                  "MRc5 Construction and Demolition Waste Diversion": 4
+                                }
+                              },
+                              "Indoor Environmental Quality (EQ)": {
+                                "total_points": 18,
+                                "criteria": {
+                                  "EQp1 Construction Management": "Required",
+                                  "EQp2 Fundamental Air Quality": "Required",
+                                  "EQp3 No Smoking": "Required",
+                                  "EQc1 Enhanced Air Quality": 2,
+                                  "EQc2 Occupant Experience": 7,
+                                  "EQc3 Accessibility and Inclusion": 2,
+                                  "EQc4 Resilient Spaces": 3,
+                                  "EQc5 Air Quality Testing and Monitoring": 4
+                                }
+                              },
+                              "Project Priorities (PR)": {
+                                "total_points": 10,
+                                "criteria": {
+                                  "PRc1 Project Priorities": 9,
+                                  "PRc2 LEED AP": 1
+                                }
+                              },
+                              "Total Possible Points": 110
+                        }
+
         file_path += "/LEED v5 ID+C Reference Guide_Launch Edition 1.pdf"
     elif project.leed_certification == "LEED O+M":
+        scorecard_json = {
+                              "Integrative Process, Planning and Assessments (IP)": {
+                                "total_points": 2,
+                                "criteria": {
+                                  "IPp1 Climate Resilience Assessment": "Required",
+                                  "IPp2 Human Impact Assessment": "Required",
+                                  "IPp3 Operations Assessment and Policy": "Required",
+                                  "IPp4 Current Facilities Requirements and O+M Plan": "Required",
+                                  "IPc1 Operational Planning for Resilience": 1,
+                                  "IPc2 Worker Safety and Training": 1
+                                }
+                              },
+                              "Location and Transportation (LT)": {
+                                "total_points": 8,
+                                "criteria": {
+                                  "LTc1 Sustainable Transportation Performance": 6,
+                                  "LTc2 Transportation Demand Management": 1,
+                                  "LTc3 Electric Vehicles": 1
+                                }
+                              },
+                              "Sustainable Sites (SS)": {
+                                "total_points": 2,
+                                "criteria": {
+                                  "SSc1 Heat Island Reduction": 1,
+                                  "SSc2 Light Pollution and Bird Collision Reduction": 1
+                                }
+                              },
+                              "Water Efficiency (WE)": {
+                                "total_points": 15,
+                                "criteria": {
+                                  "WEp1 Water Metering and Reporting": "Required",
+                                  "WEc1 Water Efficiency Performance": 14,
+                                  "WEc2 Advanced Water Metering": 1
+                                }
+                              },
+                              "Energy and Atmosphere (EA)": {
+                                "total_points": 34,
+                                "criteria": {
+                                  "EAp1 Carbon Projection from Energy Use": "Required",
+                                  "EAp2 Energy Monitoring and Reporting": "Required",
+                                  "EAp3 Minimum Energy Performance": "Required",
+                                  "EAp4 Fundamental Refrigerant Management": "Required",
+                                  "EAc1 Greenhouse Gas Emissions Reduction Performance": 12,
+                                  "EAc2 Optimized Energy Performance": 12,
+                                  "EAc3 Enhanced Refrigerant Management Performance": 2,
+                                  "EAc4 Peak Load Reduction Performance": 1,
+                                  "EAc5 Decarbonization and Efficiency Plans": 4,
+                                  "EAc6 Peak Load Management": 1,
+                                  "EAc7 Commissioning": 2
+                                }
+                              },
+                              "Materials and Resources (MR)": {
+                                "total_points": 13,
+                                "criteria": {
+                                  "MRc1 Waste Reduction Performance": 12,
+                                  "MRc2 Waste Reduction Strategies": 1
+                                }
+                              },
+                              "Indoor Environmental Quality (EQ)": {
+                                "total_points": 26,
+                                "criteria": {
+                                  "EQp1 Verification of Ventilation and Filtration": "Required",
+                                  "EQp2 No Smoking": "Required",
+                                  "EQc1 Indoor Air Quality Performance": 10,
+                                  "EQc2 Ventilation Performance": 5,
+                                  "EQc3 Occupant Experience Performance": 3,
+                                  "EQc4 Facility Stewardship Performance": 3,
+                                  "EQc5 Air Filtration": 1,
+                                  "EQc6 Resilient Spaces": 1,
+                                  "EQc7 Green Cleaning": 2,
+                                  "EQc8 Integrated Pest Management": 1
+                                }
+                              },
+                              "Project Priorities (PR)": {
+                                "total_points": 10,
+                                "criteria": {
+                                  "PRc1 Project Priorities": 10
+                                }
+                              },
+                              "Total Possible Points": 110
+                        }
+
         file_path += "/LEED v5 O+M Reference Guide_Launch Edition 1.pdf"
     else:
         return ""
+
+    prompt += f"This is the scorecard for this category {scorecard_json}"
     response = analyze_pdf_from_file(
         file_path=file_path,
         prompt=prompt
@@ -268,6 +629,7 @@ def generate_leed_certification_insight(project):
     project.leed_certification_insight = combined_data.get("combined_insight", "")
     project.leed_combined_forecasting = combined_data.get("forecasting", {})
     project.leed_graph_metrics = combined_data.get("graph_metrics", {})
+    project.leed_scorecard = combined_data.get("scorecard", {})
     project.save()
 
     return combined_data
