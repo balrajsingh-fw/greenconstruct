@@ -42,6 +42,7 @@ class Project(models.Model):
     well_certification_insight = models.JSONField(null=True, blank=True)
     well_graph_metrics = models.JSONField(null=True, blank=True)
     well_combined_forecasting = models.JSONField(null=True, blank=True)
+    well_scorecard = models.JSONField(null=True, blank=True)
 
     def __int__(self):
         return self.id

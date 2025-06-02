@@ -6,7 +6,8 @@ from .models import Material, Project, BuildingType, Document
 from .forms import *
 from google import genai
 from django.contrib import messages
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
+from openpyxl.styles import Font
 import io
 
 MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
@@ -635,10 +636,10 @@ def generate_leed_certification_insight(project):
     return combined_data
 
 
-def download_scorecard(request, project_id):
+def download_leed_scorecard(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
-    project_scorecard = project.leed_scorecard
+    leed_scorecard = project.leed_scorecard
 
     file_path = "LEED Scorecards and Reference Guides"
     scorecard_file_path = ""
@@ -663,12 +664,12 @@ def download_scorecard(request, project_id):
         row_text = " | ".join(row_values)
 
         # Detect category header
-        for category in project_scorecard.keys():
+        for category in leed_scorecard.keys():
             if category in row_text:
                 current_category = category
                 # Update total points in last cell
-                if "total_points" in project_scorecard[category]:
-                    row[-1].value = project_scorecard[category]["total_points"]
+                if "total_points" in leed_scorecard[category]:
+                    row[-1].value = leed_scorecard[category]["total_points"]
                 break  # only one category per row
 
         # Skip if no active category
@@ -676,7 +677,7 @@ def download_scorecard(request, project_id):
             continue
 
         # Update individual criteria points
-        for key, value in project_scorecard[current_category].items():
+        for key, value in leed_scorecard[current_category].items():
             if key == "total_points":
                 continue
             if key.lower() in row_text.lower():
@@ -697,6 +698,45 @@ def download_scorecard(request, project_id):
     response['Content-Disposition'] = 'attachment; filename=leed_v5_scorecard.xlsx'
     return response
 
+
+def download_well_scorecard(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    well_scorecard = project.well_scorecard  # Assumed to be a dict
+
+    # Create an Excel workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "WELL Scorecard"
+
+    # Set headers
+    headers = ["Concept", "Type", "Feature", "Points"]
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    # Write data
+    for concept, data in well_scorecard.items():
+        # Handle Preconditions
+        if "Preconditions" in data:
+            for item in data["Preconditions"]:
+                ws.append([concept, "Precondition", item, "N/A"])
+        # Handle Optimizations
+        if "Optimizations" in data:
+            for feature, points in data["Optimizations"].items():
+                ws.append([concept, "Optimization", feature, points])
+
+    # Save to a memory stream
+    file_stream = io.BytesIO()
+    wb.save(file_stream)
+    file_stream.seek(0)
+
+    # Return as downloadable Excel file
+    response = HttpResponse(
+        file_stream,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response['Content-Disposition'] = 'attachment; filename=well_scorecard.xlsx'
+    return response
 
 def generate_well_certification_insight(project):
     # Gather existing insights from project
@@ -734,6 +774,7 @@ def generate_well_certification_insight(project):
       - energy_efficiency_score (float, 0-100)
       - well_score (int, 0-110) (WELL Certificate score according to your analysis)
       - well_recommendation_grade (str)
+    - Scorecard for well will contain all the values provided in the well scorecard json object with its actual values as calculated according to data provided. The total well score calculated should match with that of the scorecard.
     Note: well_recommendation_grade is string providing grades for particular range of score 110 Points [Bronze(0-40 Points),Silver(40-50 Points), Gold(50-60Points),Platinum(60+ Points)],
     Return ONLY the JSON response exactly in this format, with no extra text:
 
@@ -753,11 +794,174 @@ def generate_well_certification_insight(project):
         "energy_efficiency_score": float,
         "sustainability_recommendation_score": int,
         "sustainability_recommendation_grade": string
+      }},
+      "scorecard": {{
+            well_scorecard_json
       }}
     }}
     """
 
     file_path = "LEED Scorecards and Reference Guides/WELL_Full_Scoring_Structure.pdf"
+
+    well_scorecard_json = {
+                                "Air": {
+                                  "Preconditions": ["A01 - Air Quality", "A02 - Smoke-Free Environment", "A03 - Ventilation Design", "A04 - Construction Pollution Management"],
+                                  "Optimizations": {
+                                    "A05 - Enhanced Air Quality": 4,
+                                    "A06 - Enhanced Ventilation Design": 3,
+                                    "A07 - Operable Windows": 2,
+                                    "A08 - Air Quality Monitoring and Awareness": 2,
+                                    "A09 - Pollution Infiltration Management": 2,
+                                    "A10 - Combustion Minimization": 1,
+                                    "A11 - Source Separation": 1,
+                                    "A12 - Air Filtration": 1,
+                                    "A13 - Enhanced Supply Air": 3,
+                                    "A14 - Microbe and Mold Control": 1
+                                  }
+                                },
+                                "Water": {
+                                  "Preconditions": ["W01 - Water Quality Indicators", "W02 - Drinking Water Quality", "W03 - Basic Water Management"],
+                                  "Optimizations": {
+                                    "W04 - Enhanced Water Quality": 1,
+                                    "W05 - Drinking Water Quality Management": 3,
+                                    "W06 - Drinking Water Promotion": 1,
+                                    "W07 - Moisture Management": 3,
+                                    "W08 - Hygiene Support": 4,
+                                    "W09 - Onsite Non-Potable Water Reuse": 2
+                                  }
+                                },
+                                "Nourishment": {
+                                  "Preconditions": ["N01 - Fruits and Vegetables", "N02 - Nutritional Transparency"],
+                                  "Optimizations": {
+                                    "N03 - Refined Ingredients": 2,
+                                    "N04 - Food Advertising": 1,
+                                    "N05 - Artificial Ingredients": 1,
+                                    "N06 - Portion Sizes": 1,
+                                    "N07 - Nutrition Education": 1,
+                                    "N08 - Mindful Eating": 2,
+                                    "N09 - Special Diets": 2,
+                                    "N10 - Food Preparation": 1,
+                                    "N11 - Responsible Food Sourcing": 1,
+                                    "N12 - Food Production": 2,
+                                    "N13 - Local Food Environment": 1,
+                                    "N14 - Red and Processed Meats": 1
+                                  }
+                                },
+                                "Light": {
+                                  "Preconditions": ["L01 - Light Exposure", "L02 - Visual Lighting Design"],
+                                  "Optimizations": {
+                                    "L03 - Circadian Lighting Design": 3,
+                                    "L04 - Electric Light Glare Control": 2,
+                                    "L05 - Daylight Design Strategies": 4,
+                                    "L06 - Daylight Simulation": 2,
+                                    "L07 - Visual Balance": 1,
+                                    "L08 - Electric Light Quality": 3,
+                                    "L09 - Occupant Lighting Control": 3
+                                  }
+                                },
+                                "Movement": {
+                                  "Preconditions": ["V01 - Active Buildings and Communities", "V02 - Ergonomic Workstation Design"],
+                                  "Optimizations": {
+                                    "V03 - Circulation Network": 3,
+                                    "V04 - Facilities for Active Occupants": 3,
+                                    "V05 - Site Planning and Selection": 4,
+                                    "V06 - Physical Activity Opportunities": 2,
+                                    "V07 - Active Furnishings": 2,
+                                    "V08 - Physical Activity Spaces and Equipment": 2,
+                                    "V09 - Physical Activity Promotion": 1,
+                                    "V10 - Self-Monitoring": 1,
+                                    "V11 - Ergonomics Programming": 3
+                                  }
+                                },
+                                "Thermal_Comfort": {
+                                  "Preconditions": ["T01 - Thermal Performance"],
+                                  "Optimizations": {
+                                    "T02 - Verified Thermal Comfort": 3,
+                                    "T03 - Thermal Zoning": 2,
+                                    "T04 - Individual Thermal Control": 3,
+                                    "T05 - Radiant Thermal Comfort": 2,
+                                    "T06 - Thermal Comfort Monitoring": 1,
+                                    "T07 - Humidity Control": 1,
+                                    "T08 - Enhanced Operable Windows": 1,
+                                    "T09 - Outdoor Thermal Comfort": 3
+                                  }
+                                },
+                                "Sound": {
+                                  "Preconditions": ["S01 - Sound Mapping"],
+                                  "Optimizations": {
+                                    "S02 - Maximum Noise Levels": 3,
+                                    "S03 - Sound Barriers": 3,
+                                    "S04 - Reverberation Time": 2,
+                                    "S05 - Sound Reducing Surfaces": 2,
+                                    "S06 - Minimum Background Sound": 2,
+                                    "S07 - Impact Noise Management": 3,
+                                    "S08 - Enhanced Audio Devices": 2,
+                                    "S09 - Hearing Health Conservation": 1
+                                  }
+                                },
+                                "Materials": {
+                                  "Preconditions": ["X01 - Material Restrictions", "X02 - Interior Hazardous Materials Management", "X03 - CCA and Lead Management"],
+                                  "Optimizations": {
+                                    "X04 - Site Remediation": 1,
+                                    "X05 - Enhanced Material Restrictions": 2,
+                                    "X06 - VOC Restrictions": 4,
+                                    "X07 - Materials Transparency": 3,
+                                    "X08 - Materials Optimization": 2,
+                                    "X09 - Waste Management": 1,
+                                    "X10 - Pest Management and Pesticide Use": 1,
+                                    "X11 - Cleaning Products and Protocols": 2,
+                                    "X12 - Contact Reduction": 2,
+                                    "X13 - Fair Labor in Building Products": 3
+                                  }
+                                },
+                                "Mind": {
+                                  "Preconditions": ["M01 - Mental Health Promotion", "M02 - Nature and Place"],
+                                  "Optimizations": {
+                                    "M03 - Mental Health Services": 4,
+                                    "M04 - Mental Health Education": 2,
+                                    "M05 - Stress Management": 2,
+                                    "M06 - Restorative Opportunities": 2,
+                                    "M07 - Restorative Spaces": 1,
+                                    "M08 - Restorative Programming": 1,
+                                    "M09 - Enhanced Access to Nature": 2,
+                                    "M10 - Tobacco Cessation": 3,
+                                    "M11 - Substance Use Services": 2
+                                  }
+                                },
+                                "Community": {
+                                  "Preconditions": ["C01 - Health and Well-Being Promotion", "C02 - Integrative Design", "C03 - Emergency Preparedness", "C04 - Occupant Survey"],
+                                  "Optimizations": {
+                                    "C05 - Enhanced Occupant Survey": 4,
+                                    "C06 - Health Services and Benefits": 5,
+                                    "C07 - Enhanced Health and Well-Being Promotion": 2,
+                                    "C08 - New Parent Support": 3,
+                                    "C09 - New Mother Support": 3,
+                                    "C10 - Family Support": 3,
+                                    "C11 - Civic Engagement": 2,
+                                    "C12 - Talent Recruitment and Workforce Action Plans": 3,
+                                    "C13 - Accessibility and Universal Design": 4,
+                                    "C14 - Emergency Resources": 2,
+                                    "C15 - Emergency Resilience and Recovery": 4,
+                                    "C16 - Affordable Housing": 2,
+                                    "C17 - Responsible Labor Practices": 3,
+                                    "C18 - Support for Victims of Domestic Violence": 2,
+                                    "C19 - Education and Support": 2,
+                                    "C20 - Historical Acknowledgement": 1,
+                                    "C21 - Multisensory Design": 4
+                                  }
+                                },
+                                "Innovation": {
+                                  "Optimizations": {
+                                    "I01 - Innovate WELL": "Varies",
+                                    "I02 - WELL Accredited Professional (WELL AP)": 1,
+                                    "I03 - Experience WELL Certification": 1,
+                                    "I04 - Gateways to Well-Being": 1,
+                                    "I05 - Green Building Rating Systems": 5,
+                                    "I06 - Carbon Disclosure and Reduction": 10
+                                  }
+                                }
+                        }
+    prompt += f"Here is the example json object for well scorecard json {well_scorecard_json}"
     response = analyze_pdf_from_file(
         file_path=file_path,
         prompt=prompt
@@ -779,6 +983,7 @@ def generate_well_certification_insight(project):
     project.well_certification_insight = combined_data.get("combined_insight", "")
     project.well_combined_forecasting = combined_data.get("forecasting", {})
     project.well_graph_metrics = combined_data.get("graph_metrics", {})
+    project.well_scorecard = combined_data.get("scorecard", {})
     project.save()
     return combined_data
 
