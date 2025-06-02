@@ -1,10 +1,13 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
+from django.http import HttpResponse, JsonResponse
 from .models import Material, Project, BuildingType, Document
 from .forms import *
 from google import genai
 from django.contrib import messages
+from openpyxl import load_workbook
+import io
 
 MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
 client = genai.Client(api_key='AIzaSyCbHyl224pNyX_HOnYFtjwQr_o2nH8GgLU')
@@ -249,7 +252,6 @@ def generate_leed_certification_insight(project):
     """
 
     file_path = "LEED Scorecards and Reference Guides"
-    scorecard_json = {}
     if project.leed_certification == "LEED BD+C(New Construction)":
         scorecard_json = {
                               "Integrative Process, Planning and Assessments (IP)": {
@@ -518,7 +520,6 @@ def generate_leed_certification_insight(project):
                               },
                               "Total Possible Points": 110
                         }
-
         file_path += "/LEED v5 ID+C Reference Guide_Launch Edition 1.pdf"
     elif project.leed_certification == "LEED O+M":
         scorecard_json = {
@@ -602,7 +603,6 @@ def generate_leed_certification_insight(project):
                               },
                               "Total Possible Points": 110
                         }
-
         file_path += "/LEED v5 O+M Reference Guide_Launch Edition 1.pdf"
     else:
         return ""
@@ -633,6 +633,69 @@ def generate_leed_certification_insight(project):
     project.save()
 
     return combined_data
+
+
+def download_scorecard(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+
+    project_scorecard = project.leed_scorecard
+
+    file_path = "LEED Scorecards and Reference Guides"
+    scorecard_file_path = ""
+    if project.leed_certification == "LEED BD+C(New Construction)":
+        scorecard_file_path = file_path + "/LEED_v5_Scorecard_BDC_New_Construction.xlsx"
+    elif project.leed_certification == "LEED BD+C(Core and Shell)":
+        scorecard_file_path = file_path + "/LEED_v5_Scorecard_BDC_Core_and_Shell.xlsx"
+    elif project.leed_certification == "LEED ID+C":
+        scorecard_file_path = file_path + "/LEED_v5_Scorecard_IDC.xlsx"
+    elif project.leed_certification == "LEED O+M":
+        scorecard_file_path = file_path + "/LEED_v5_Scorecard_OM.xlsx"
+    else:
+        return ""
+
+    workbook = load_workbook(scorecard_file_path)
+    sheet = workbook.active
+
+    current_category = None
+
+    for row in sheet.iter_rows():
+        row_values = [str(cell.value).strip() if cell.value is not None else "" for cell in row]
+        row_text = " | ".join(row_values)
+
+        # Detect category header
+        for category in project_scorecard.keys():
+            if category in row_text:
+                current_category = category
+                # Update total points in last cell
+                if "total_points" in project_scorecard[category]:
+                    row[-1].value = project_scorecard[category]["total_points"]
+                break  # only one category per row
+
+        # Skip if no active category
+        if not current_category:
+            continue
+
+        # Update individual criteria points
+        for key, value in project_scorecard[current_category].items():
+            if key == "total_points":
+                continue
+            if key.lower() in row_text.lower():
+                # Write value in last cell of the row
+                row[-1].value = value
+                break
+
+    # Save to a memory stream
+    file_stream = io.BytesIO()
+    workbook.save(file_stream)
+    file_stream.seek(0)
+
+    # Return as downloadable Excel file
+    response = HttpResponse(
+        file_stream,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response['Content-Disposition'] = 'attachment; filename=leed_v5_scorecard.xlsx'
+    return response
 
 
 def generate_well_certification_insight(project):
