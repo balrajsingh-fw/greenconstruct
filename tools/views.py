@@ -10,46 +10,6 @@ MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
 client = genai.Client(api_key='AIzaSyCbHyl224pNyX_HOnYFtjwQr_o2nH8GgLU')
 
 
-def carbon_tool(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    MaterialFormSet = formset_factory(MaterialQuantityForm, extra=1)
-
-    if request.method == 'POST':
-        formset = MaterialFormSet(request.POST)
-        if formset.is_valid():
-            total_emission = 0
-            breakdown = []
-
-            for form in formset:
-                material = form.cleaned_data.get('material')
-                quantity = form.cleaned_data.get('quantity')
-
-                if material and quantity:
-                    emission = material.co2_intensity * quantity
-                    total_emission += emission
-                    breakdown.append({
-                        'material': material.name,
-                        'quantity': quantity,
-                        'emission': round(emission, 2),
-                    })
-
-            insight = generate_carbon_footprint_insight(breakdown, total_emission)
-
-            # Save carbon data to project
-            project.carbon_data = breakdown
-            project.carbon_insight = insight
-            project.save()
-
-            # Redirect to next step: waste tool
-            return redirect('waste_tool', project_id=project.id)
-    else:
-        formset = MaterialFormSet()
-    materials = Material.objects.all()
-    return render(request, 'tools/carbon_tool.html', {'materials': materials,
-                                                      'formset': formset,
-                                                      'project': project})
-
-
 def generate_carbon_footprint_insight(breakdown, total_emission):
     prompt = (
         "You are an AI sustainability assistant analyzing carbon emissions from construction materials. "
@@ -104,44 +64,6 @@ def generate_carbon_footprint_insight(breakdown, total_emission):
     return carbon_data
 
 
-# Waste Reduction Tool (Renamed to waste_tool as per request)
-def waste_tool(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-
-    if request.method == 'POST':
-        form = WasteReductionForm(request.POST)
-        if form.is_valid():
-            building_size = form.cleaned_data['building_size']
-            material = form.cleaned_data['material']
-            waste_factor = form.cleaned_data['waste_factor']
-            construction_method = form.cleaned_data['construction_method']
-            project_phase = form.cleaned_data['project_phase']
-            climate = form.cleaned_data['climate']
-
-            predicted_waste = building_size * (waste_factor / 100)
-
-            ai_result = generate_waste_forecasting(
-                building_size, material, waste_factor,
-                construction_method, project_phase, climate
-            )
-
-            # Save waste data and insights to project
-            project.waste_data = {
-                'building_size': building_size,
-                'waste_factor': waste_factor,
-                'construction_method': construction_method,
-                'project_phase': project_phase,
-                'climate': climate,
-                'predicted_waste': predicted_waste
-            }
-            project.waste_insight = ai_result
-            project.save()
-
-            return redirect('design_tool', project_id=project.id)
-    else:
-        form = WasteReductionForm()
-    return render(request, 'tools/waste_tool.html', {'form': form, 'project': project})
-
 def generate_waste_forecasting(building_size, material, waste_factor,
                 construction_method, project_phase, climate):
     prompt = (
@@ -182,41 +104,6 @@ def generate_waste_forecasting(building_size, material, waste_factor,
         waste_data = {}
     print("waste data", waste_data)
     return waste_data
-
-
-
-
-def design_tool(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-
-    if request.method == 'POST':
-        sunlight = float(request.POST.get('sunlight'))
-        airflow = float(request.POST.get('airflow'))
-        size = float(request.POST.get('size'))
-        energy_budget = float(request.POST.get('energy_budget'))
-
-        suggestion = generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size)
-
-        # Save design data and insights to project
-        project.design_data = {
-            'sunlight': sunlight,
-            'airflow': airflow,
-            'size': size,
-            'energy_budget': energy_budget
-        }
-        project.design_insight = suggestion
-        project.save()
-
-        # After design tool, generate combined insight & redirect to project detail
-        combined_insight = generate_combined_insight(project)
-        project.combined_insight = combined_insight['insight']
-        project.graph_metrics = combined_insight['graph_metrics']
-        project.save()
-
-        return redirect('project_step', project_id=project.id, step=4)
-
-    return render(request, 'tools/design_tool.html', {'project': project})
-
 
 
 def generate_design_suggestion_gemini(sunlight, airflow, energy_budget, size):
@@ -290,7 +177,7 @@ def dashboard(request):
     return render(request, "dashboard.html", {"projects": projects})
 
 
-def generate_combined_insight(project):
+def generate_leed_certification_insight(project):
     # Gather existing insights from project
     carbon = project.carbon_insight or {}
     waste = project.waste_insight or {}
@@ -307,9 +194,9 @@ def generate_combined_insight(project):
 
     # Compose the prompt with all insights embedded
     prompt = f"""
-    You are an AI assistant helping companies find their LEED certification score for LEED v5 certificate tasked with generating a combined insight and forecasting for a construction project.
+    You are an AI assistant helping companies find their LEED v5 certification score for LEED v5 certificate tasked with generating a combined insight and forecasting for a construction project.
 
-    You are required to provide proper LEED certification analysis for the following project:{project}
+    You are required to provide proper LEED v5 certification analysis for the following project:{project}
     
     Please analyze all data and provide a combined JSON output with:
     
@@ -324,9 +211,9 @@ def generate_combined_insight(project):
       - total_carbon_emission (float)
       - predicted_waste_kg (float)
       - energy_efficiency_score (float, 0-100)
-      - sustainability_recommendation_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
-      - sustainability_recommendation_grade (str)
-    Note: sustainability_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
+      - leed_score (int, 0-110) (USGBC LEED Certificate score according to your analysis)
+      - leed_recommendation_grade (str)
+    Note: leed_recommendation_grade is string providing grades for particular range of score 110 Points [Failed(0-39 Points),Certified(40-49 Points),Silver(50-59 Points), Gold(60-79Points),Platinum(80+ Points)],
     Return ONLY the JSON response exactly in this format, with no extra text:
     
     {{
@@ -378,11 +265,96 @@ def generate_combined_insight(project):
         combined_data = {}
     print("insight", combined_data.get("combined_insight"))
     # Save back to project
-    project.combined_insight = combined_data.get("combined_insight", "")
-    project.combined_forecasting = combined_data.get("forecasting", {})
-    project.graph_metrics = combined_data.get("graph_metrics", {})
+    project.leed_certification_insight = combined_data.get("combined_insight", "")
+    project.leed_combined_forecasting = combined_data.get("forecasting", {})
+    project.leed_graph_metrics = combined_data.get("graph_metrics", {})
     project.save()
 
+    return combined_data
+
+
+def generate_well_certification_insight(project):
+    # Gather existing insights from project
+    carbon = project.carbon_insight or {}
+    waste = project.waste_insight or {}
+    design = project.design_insight or {}
+
+    # Convert JSON strings if needed
+    import json
+    for insight in [carbon, waste, design]:
+        if isinstance(insight, str):
+            try:
+                insight = json.loads(insight)
+            except:
+                insight = {}
+
+    # Compose the prompt with all insights embedded
+    prompt = f"""
+    You are an AI assistant helping companies find their WELL v2 Building Standard certification score for WELL v2 certificate tasked with generating a combined insight and forecasting for a construction project.
+
+    You are required to provide proper WELL certification analysis for the following project:{project}
+
+    Please analyze all data and provide a combined JSON output with:
+
+    - A human-readable combined insight summary containing two parts
+        1. WELL score for choosen WELL certification by the user and current data available will be value for key "score" and reason for its calculation will be value of key "reasons", reasons value will be list of strings.
+        2. Suggestions for improving all factors to maximise WELL score and then predicted WELL score once user follows all suggestion properly. Here also provide result in two keys 'score' and 'reasons'. Similar to above point.
+    - In forecasting make sure no past year is provide , forecasting will be made from current year to current year + 1 year
+    - In the final insight also add the percentage reduction or increase in cost if adviced material are
+     used.
+    - Forecasting information for future emissions, waste, and energy efficiency.
+    - Graph metrics data suitable for bar graphs, pie charts, or line charts, including:
+      - total_carbon_emission (float)
+      - predicted_waste_kg (float)
+      - energy_efficiency_score (float, 0-100)
+      - well_score (int, 0-110) (WELL Certificate score according to your analysis)
+      - well_recommendation_grade (str)
+    Note: well_recommendation_grade is string providing grades for particular range of score 110 Points [Bronze(0-40 Points),Silver(40-50 Points), Gold(50-60Points),Platinum(60+ Points)],
+    Return ONLY the JSON response exactly in this format, with no extra text:
+
+    {{
+      "combined_insight": {{
+        "current_scenario": {{'score': int, 'reasons': list of strings}},
+        "suggestion": {{'score': int, 'reasons': list of strings}}
+      }},
+      "forecasting": {{
+        "carbon_emission_trend": [{{"year": int, "emission": float}}, ...],
+        "waste_trend": [{{"year": int, "waste": float}}, ...],
+        "energy_efficiency_trend": [{{"year": int, "score": float}}, ...]
+      }},
+      "graph_metrics": {{
+        "total_carbon_emission": float,
+        "predicted_waste_kg": float,
+        "energy_efficiency_score": float,
+        "sustainability_recommendation_score": int,
+        "sustainability_recommendation_grade": string
+      }}
+    }}
+    """
+
+    file_path = "LEED Scorecards and Reference Guides/WELL_Full_Scoring_Structure.pdf"
+    response = analyze_pdf_from_file(
+        file_path=file_path,
+        prompt=prompt
+    )
+
+    raw_text = response.text.strip()
+
+    # Clean possible markdown or code fences
+    if raw_text.startswith("```json"):
+        raw_text = raw_text.lstrip("```json").rstrip("```").strip()
+
+    try:
+        combined_data = json.loads(raw_text)
+    except json.JSONDecodeError as e:
+        print("JSON parse error:", e)
+        combined_data = {}
+    print("insight", combined_data.get("combined_insight"))
+    # Save back to project
+    project.well_certification_insight = combined_data.get("combined_insight", "")
+    project.well_combined_forecasting = combined_data.get("forecasting", {})
+    project.well_graph_metrics = combined_data.get("graph_metrics", {})
+    project.save()
     return combined_data
 
 
@@ -486,7 +458,7 @@ def project_step(request, project_id, step):
                     project.current_step = 2
                 project.save()
 
-                return redirect('project_step', project_id=project.id, step=2)
+                return redirect('project_step', project_id=project.id, step=1)
 
         # STEP 2: Waste
         elif step == 2:
@@ -509,7 +481,7 @@ def project_step(request, project_id, step):
                     project.current_step = 3
                 project.save()
 
-                return redirect('project_step', project_id=project.id, step=3)
+                return redirect('project_step', project_id=project.id, step=2)
 
         # STEP 3: Design
         elif step == 3:
@@ -528,13 +500,11 @@ def project_step(request, project_id, step):
             }
             project.design_insight = suggestion
 
-            combined = generate_combined_insight(project)
-
-            if project.current_step < 4:
-                project.current_step = 4
+            if project.current_step < 3:
+                project.current_step = 3
             project.save()
 
-            return redirect('project_step', project_id=project.id, step=4)
+            return redirect('project_step', project_id=project.id, step=3)
 
     else:
         # GET request: render the correct step's form or data
@@ -565,3 +535,19 @@ def project_gallery(request, project_id):
         else:
             messages.error(request, "Both title and file are required.")
     return render(request, 'projects/gallery.html', {'project': project, 'documents': documents})
+
+
+def leed_analysis(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    leed_insight = project.leed_certification_insight
+    if not leed_insight:
+        generate_leed_certification_insight(project)
+    return render(request, 'projects/leed_analysis.html', {'project': project})
+
+
+def well_analysis(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    well_insight = project.well_certification_insight
+    if not well_insight:
+        generate_well_certification_insight(project)
+    return render(request, 'projects/well_analysis.html', {'project': project})

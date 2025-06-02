@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>LEED Certification Analysis for Project: {{ project.name }}</h2>
+
+  <hr>
+
+  <div class="mb-3">
+    <h4>LEED Certification:</h4>
+    <p>{{ project.leed_certification|default:"Not specified" }}</p>
+  </div>
+  <div class="mb-3">
+{% if project.leed_certification_insight %}
+  {% load static %}
+  {{ project.leed_certification_insight|json_script:"leedInsight" }}
+
+  <div id="leedInsightStructured" class="my-4"></div>
+
+  <script>
+    const leedInsight = JSON.parse(document.getElementById('leedInsight').textContent);
+    const container = document.getElementById('leedInsightStructured');
+
+    function createInsightSection(title, data) {
+      const section = document.createElement('div');
+      section.classList.add('card', 'mb-3', 'shadow-sm');
+
+      const header = document.createElement('div');
+      header.classList.add('card-header', 'bg-primary', 'text-white');
+      header.innerHTML = `<h5 class="mb-0">${title}</h5>`;
+      section.appendChild(header);
+
+      const body = document.createElement('div');
+      body.classList.add('card-body', 'bg-light');
+
+      const score = document.createElement('h6');
+      score.innerHTML = `<strong>Score:</strong> ${data.score}`;
+      body.appendChild(score);
+
+      const reasonsList = document.createElement('ul');
+      data.reasons.forEach(reason => {
+        const li = document.createElement('li');
+        li.textContent = reason;
+        reasonsList.appendChild(li);
+      });
+
+      body.appendChild(reasonsList);
+      section.appendChild(body);
+      return section;
+    }
+
+    if (leedInsight.current_scenario) {
+      container.appendChild(createInsightSection('Current Scenario', leedInsight.current_scenario));
+    }
+    if (leedInsight.suggestion) {
+      container.appendChild(createInsightSection('Suggestion', leedInsight.suggestion));
+    }
+  </script>
+{% else %}
+  <div class="alert alert-warning mt-3" role="alert">
+    No LEED insights available.
+  </div>
+{% endif %}
+  </div>
+
+  <canvas id="forecastChart" width="400" height="200"></canvas>
+<canvas id="metricsChart" width="400" height="300"></canvas>
+
+  {{ project.leed_combined_forecasting|json_script:"forecast-data" }}
+  {{ project.leed_graph_metrics|json_script:"metrics-data" }}
+
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
+    const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
+
+    // Line chart
+    const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+    new Chart(forecastCtx, {
+      type: 'line',
+      data: {
+        labels: forecastData.carbon_emission_trend.map(d => d.year),
+        datasets: [
+          {
+            label: 'Carbon Emissions (kg CO₂)',
+            data: forecastData.carbon_emission_trend.map(d => d.emission),
+            borderColor: '#36A2EB',
+            backgroundColor: 'rgba(54,162,235,0.2)',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Waste (kg)',
+            data: forecastData.waste_trend.map(d => d.waste),
+            borderColor: '#FF6384',
+            backgroundColor: 'rgba(255,99,132,0.2)',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: 'Energy Efficiency (%)',
+            data: forecastData.energy_efficiency_trend.map(d => d.score),
+            borderColor: '#4BC0C0',
+            backgroundColor: 'rgba(75,192,192,0.2)',
+            fill: true,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Bar chart
+    const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+    new Chart(metricsCtx, {
+      type: 'bar',
+      data: {
+        labels: [
+          'Total Carbon Emission',
+          'Predicted Waste (kg)',
+          'Energy Efficiency (%)',
+          'USGBC LEED Score'
+        ],
+        datasets: [
+          {
+            label: 'Main Metrics',
+            data: [
+              metrics.total_carbon_emission,
+              metrics.predicted_waste_kg,
+              metrics.energy_efficiency_score,
+              null
+            ],
+            backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
+            xAxisID: 'xMain'
+          },
+          {
+            label: 'USGBC LEED Score',
+            data: [null, null, null, metrics.sustainability_recommendation_score],
+            backgroundColor: [null, null, null, '#FFCE56'],
+            xAxisID: 'xSecondary'
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        scales: {
+          xMain: {
+            type: 'linear',
+            position: 'top',
+            beginAtZero: true,
+            max: 1000,
+            title: { display: true, text: 'Main Metrics Scale' }
+          },
+          xSecondary: {
+            type: 'linear',
+            position: 'bottom',
+            beginAtZero: true,
+            min: 0,
+            max: 110,
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'USGBC LEED Score' }
+          }
+        },
+        plugins: {
+          legend: { display: true },
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label: function (context) {
+                const label = context.dataset.label || '';
+                if (label === 'USGBC LEED Score') {
+                  return `USGBC LEED Score: ${context.raw} (Grade: ${metrics.sustainability_recommendation_grade})`;
+                }
+
+                const originalValues = {
+                  'Total Carbon Emission': metrics.total_carbon_emission,
+                  'Predicted Waste (kg)': metrics.predicted_waste_kg,
+                  'Energy Efficiency (%)': metrics.energy_efficiency_score
+                };
+                if (originalValues[context.label]) {
+                  return `${context.label}: ${originalValues[context.label]}`;
+                }
+                return `${context.label}: ${context.raw}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>
+
+{% endblock %}

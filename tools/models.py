@@ -16,8 +16,6 @@ class Project(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True)
     country = models.CharField(max_length=100, blank=True, null=True)
     building_type = models.CharField(max_length=100, blank=True, null=True)
-    leed_certification = models.CharField(max_length=100, blank=True, null=True)
-    well_certification = models.CharField(max_length=100, blank=True, null=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -33,6 +31,16 @@ class Project(models.Model):
 
     design_data = models.JSONField(null=True, blank=True)
     design_insight = models.JSONField(null=True, blank=True)
+
+    leed_certification = models.CharField(max_length=100, blank=True, null=True)
+    leed_certification_insight = models.JSONField(null=True, blank=True)
+    leed_graph_metrics = models.JSONField(null=True, blank=True)
+    leed_combined_forecasting = models.JSONField(null=True, blank=True)
+
+    well_certification = models.CharField(max_length=100, blank=True, null=True)
+    well_certification_insight = models.JSONField(null=True, blank=True)
+    well_graph_metrics = models.JSONField(null=True, blank=True)
+    well_combined_forecasting = models.JSONField(null=True, blank=True)
 
     combined_insight = models.JSONField(null=True, blank=True)
     graph_metrics = models.JSONField(null=True, blank=True)
