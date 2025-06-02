@@ -36,6 +36,7 @@ class Project(models.Model):
     leed_certification_insight = models.JSONField(null=True, blank=True)
     leed_graph_metrics = models.JSONField(null=True, blank=True)
     leed_combined_forecasting = models.JSONField(null=True, blank=True)
+    leed_scorecard = models.JSONField(null=True, blank=True)
 
     well_certification = models.CharField(max_length=100, blank=True, null=True)
     well_certification_insight = models.JSONField(null=True, blank=True)
