@@ -42,10 +42,6 @@ class Project(models.Model):
     well_graph_metrics = models.JSONField(null=True, blank=True)
     well_combined_forecasting = models.JSONField(null=True, blank=True)
 
-    combined_insight = models.JSONField(null=True, blank=True)
-    graph_metrics = models.JSONField(null=True, blank=True)
-    combined_forecasting = models.JSONField(null=True, blank=True)  # 👈 Add this
-
     def __int__(self):
         return self.id
 
