@@ -1033,7 +1033,7 @@ def project_create(request):
                 well_certification=well_certification,
                 current_step=2  # Step 1 done, move to step 2
             )
-            return redirect('project_step', project_id=project.id, step=2)
+            return redirect('project_step', project_id=project.id, step=1)
     else:
         formset = MaterialFormSet()
 
