@@ -1030,7 +1030,13 @@ def project_create(request):
 # List all projects
 def project_list(request):
     projects = Project.objects.all().order_by('-created_at')
-    return render(request, 'projects/list.html', {'projects': projects})
+    active_count = projects.exclude(current_step=3).count()
+    completed_count = projects.filter(current_step=3).count()
+    return render(request, 'projects/list.html',
+                  {'projects': projects,
+                   'active_count': active_count,
+                   'completed_count': completed_count
+                   })
 
 # Handle step-wise form filling for project
 def project_step(request, project_id, step):
