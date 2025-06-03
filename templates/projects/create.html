@@ -264,7 +264,18 @@ function addForm() {
   const totalForms = document.getElementById('id_form-TOTAL_FORMS');
   const currentFormCount = parseInt(totalForms.value);
 
-  // Create new form HTML
+  // Get material options from existing form
+  const existingMaterialSelect = document.querySelector('select[name*="-material"]');
+  let materialOptionsHtml = '<option value="">Select material...</option>';
+
+  if (existingMaterialSelect) {
+    // Copy all options except the first one (which is the placeholder)
+    Array.from(existingMaterialSelect.options).slice(1).forEach(option => {
+      materialOptionsHtml += `<option value="${option.value}">${option.textContent}</option>`;
+    });
+  }
+
+  // Create new form HTML with populated material options
   const newFormHtml = `
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm rounded-3 h-100 material-card">
@@ -279,19 +290,23 @@ function addForm() {
           <div class="mb-3">
             <label class="form-label fw-semibold">Material</label>
             <select name="form-${currentFormCount}-material" class="form-select border-2 rounded-3" required>
-              <option value="">Select material...</option>
+              ${materialOptionsHtml}
             </select>
           </div>
 
           <div class="mb-0">
             <label class="form-label fw-semibold">Quantity</label>
             <div class="input-group">
-              <input type="number" name="form-${currentFormCount}-quantity" class="form-control border-2 rounded-3" placeholder="0" required>
+              <input type="number" name="form-${currentFormCount}-quantity" class="form-control border-2 rounded-3" placeholder="0" step="0.01" min="0" required>
               <span class="input-group-text bg-primary text-white">
                 <i class="fas fa-weight-hanging"></i>
               </span>
             </div>
           </div>
+
+          <!-- Hidden DELETE field for formset -->
+          <input type="hidden" name="form-${currentFormCount}-DELETE" value="">
+          <input type="hidden" name="form-${currentFormCount}-id" value="">
         </div>
       </div>
     </div>
@@ -313,23 +328,50 @@ function addForm() {
 
 function removeForm(button) {
   const formCard = button.closest('.col-lg-6');
-  if (document.querySelectorAll('.material-card').length > 1) {
+  const materialCards = document.querySelectorAll('.material-card');
+
+  if (materialCards.length <= 1) {
+    alert('At least one material is required.');
+    return;
+  }
+
+  // Check if this is an existing form (has an ID)
+  const idInput = formCard.querySelector('input[name*="-id"]');
+  const deleteInput = formCard.querySelector('input[name*="-DELETE"]');
+
+  if (idInput && idInput.value) {
+    // Mark for deletion instead of removing
+    deleteInput.value = 'on';
+    formCard.style.display = 'none';
+  } else {
+    // Remove new form completely
     formCard.style.transition = 'all 0.3s ease';
     formCard.style.opacity = '0';
     formCard.style.transform = 'translateX(-100%)';
     setTimeout(() => {
       formCard.remove();
       updateFormNumbers();
+      updateTotalForms();
     }, 300);
   }
 }
 
 function updateFormNumbers() {
-  const cards = document.querySelectorAll('.material-card');
-  cards.forEach((card, index) => {
-    const title = card.querySelector('.card-title');
-    title.textContent = `Material ${index + 1}`;
+  const visibleCards = document.querySelectorAll('.material-card');
+  let counter = 1;
+  visibleCards.forEach((card) => {
+    if (card.closest('.col-lg-6').style.display !== 'none') {
+      const title = card.querySelector('.card-title');
+      title.textContent = `Material ${counter}`;
+      counter++;
+    }
   });
+}
+
+function updateTotalForms() {
+  const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+  const allForms = document.querySelectorAll('select[name*="-material"]').length;
+  totalForms.value = allForms;
 }
 
 // Enhanced map functionality
