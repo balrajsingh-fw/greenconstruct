@@ -759,7 +759,7 @@ def generate_well_certification_insight(project):
       - energy_efficiency_score (float, 0-100)
       - well_score (int, 0-110) (WELL Certificate score according to your analysis)
       - well_recommendation_grade (str)
-    - Scorecard for well will contain all the values provided in the well scorecard json object with its actual values as calculated according to data provided. The total well score calculated should match with that of the scorecard.
+    - The total well score calculated should match with that of the scorecard. Mark the values in the scorecard so that they sum up to be the actual well certification score.
     Note: well_recommendation_grade is string providing grades for particular range of score 110 Points [Bronze(0-40 Points),Silver(40-50 Points), Gold(50-60Points),Platinum(60+ Points)],
     Return ONLY the JSON response exactly in this format, with no extra text:
 
@@ -946,7 +946,7 @@ def generate_well_certification_insight(project):
                                   }
                                 }
                         }
-    prompt += f"Here is the example json object for well scorecard json {well_scorecard_json}"
+    prompt += f"Here is the example json object for well scorecard json, the scorecard that you will provide will contain actual scores for each key in the scorecard {well_scorecard_json}"
     response = analyze_pdf_from_file(
         file_path=file_path,
         prompt=prompt
