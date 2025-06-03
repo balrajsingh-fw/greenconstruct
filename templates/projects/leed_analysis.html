@@ -193,11 +193,10 @@
 
         .chart-container {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 2rem;
-            margin-bottom: 2rem;
+            margin: 2rem 0;
             box-shadow: var(--card-shadow);
-            position: relative;
         }
 
         .chart-title {
@@ -205,31 +204,43 @@
             font-weight: 600;
             margin-bottom: 1.5rem;
             color: #2c3e50;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .chart-title::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 3px;
-            background: var(--primary-green);
-            margin: 0.5rem auto;
-            border-radius: 2px;
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin: 1rem 0;
         }
 
-        .alert-custom {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        .tabs-container {
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs .nav-link {
             border: none;
-            border-radius: 15px;
-            padding: 1.5rem;
-            color: #2d3436;
+            border-radius: 50px;
+            margin-right: 10px;
+            padding: 12px 24px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(45deg, var(--primary-green), #1e5f42);
+            color: white;
             box-shadow: var(--card-shadow);
         }
 
-        .alert-custom .alert-icon {
-            font-size: 1.5rem;
-            margin-right: 1rem;
+        .alert-custom {
+            border-radius: 16px;
+            border: none;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border-left: 5px solid var(--warning-orange);
         }
 
         .loading-spinner {
@@ -307,369 +318,524 @@
             color: #6c757d;
             font-weight: 500;
         }
-        .back-button {
-        background: white;
-        color: var(--secondary-color);
-        border: 1px solid var(--border-color);
-        border-radius: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
 
-    .back-button:hover {
-        background: var(--background-light);
-        color: #475569;
-        transform: translateX(-2px);
-    }
-    </style>
-    <div class="main-container">
-        <!-- Header Section -->
-        <div class="header-section">
-            <div class="header-content">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="project-title">
-                            <i class="fas fa-leaf me-3"></i>
-                            LEED Analysis Dashboard
-                        </h1>
-                        <p class="project-subtitle">
-                            <i class="fas fa-building me-2"></i>
-                            Project: Sample Green Building Project
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-md-end">
+        .back-button {
+            background: white;
+            color: var(--accent-blue);
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-button:hover {
+            background: var(--light-bg);
+            color: #475569;
+            transform: translateX(-2px);
+        }
+</style>
+
+<div class="main-container">
+    <!-- Header Section -->
+    <div class="header-section">
+        <div class="header-content">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="project-title">
+                        <i class="fas fa-leaf me-3"></i>
+                        LEED Analysis Dashboard
+                    </h1>
+                    <p class="project-subtitle">
+                        <i class="fas fa-building me-2"></i>
+                        Project: {{project.name}}
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
                     <a class="btn download-btn" href="/download-leed-scorecard/{{ project.id }}">
                         <i class="fas fa-download me-2"></i>
                         Download Scorecard
                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div class="content-section">
+        <!-- Certification Status -->
+        <div class="certification-card fade-in">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4 class="mb-2">
+                        <i class="fas fa-certificate me-2"></i>
+                        LEED Certification Status for {{project.leed_certification}}
+                    </h4>
+                    <div class="certification-level">{{project.leed_graph_metrics.sustainability_recommendation_score}}</div>
+                    <p class="mb-0 mt-2 opacity-75">{{project.leed_graph_metrics.sustainability_recommendation_grade}}</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div style="font-size: 4rem; opacity: 0.7;">
+                        <i class="fas fa-award"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Content Section -->
-        <div class="content-section">
-            <!-- Certification Status -->
-            <div class="certification-card fade-in">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h4 class="mb-2">
-                            <i class="fas fa-certificate me-2"></i>
-                            LEED Certification Status for {{project.leed_certification}}
-                        </h4>
-                        <div class="certification-level">{{project.leed_graph_metrics.sustainability_recommendation_score}}</div>
-                        <p class="mb-0 mt-2 opacity-75">{{project.leed_graph_metrics.sustainability_recommendation_grade}}</p>
-                    </div>
-                    <div class="col-md-4 text-center">
-                        <div style="font-size: 4rem; opacity: 0.7;">
-                            <i class="fas fa-award"></i>
-                        </div>
-                    </div>
+        <!-- Quick Stats -->
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <div class="stat-value">{{project.carbon_data.emission}}</div>
+                <div class="stat-label">kg CO₂ Emissions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-recycle"></i>
+                </div>
+                <div class="stat-value">{{project.waste_data.waste_factor}}</div>
+                <div class="stat-label">Waste Factor</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-value">{{project.design_data.energy_budget}} KW/h</div>
+                <div class="stat-label">Energy Budget</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-value">{{project.leed_graph_metrics.sustainability_recommendation_score}}</div>
+                <div class="stat-label">LEED Score</div>
+            </div>
+        </div>
+
+        <!-- LEED Insights -->
+        <div id="leedInsightStructured" class="fade-in">
+            <!-- Current Scenario -->
+            <div class="insight-card">
+                <div class="insight-header">
+                    <h5>
+                        <i class="fas fa-chart-line"></i>
+                        Current Scenario Analysis
+                    </h5>
+                </div>
+                <div class="insight-body">
+                    <div class="score-badge">Score: {{ project.leed_certification_insight.current_scenario.score }}/110</div>
+                    <ul class="reasons-list">
+                        {% for i in project.leed_certification_insight.current_scenario.reasons %}
+                        <li>{{ i }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="stats-grid fade-in">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-cloud"></i>
-                    </div>
-                    <div class="stat-value">{{project.carbon_data.emission}}</div>
-                    <div class="stat-label">kg CO₂ Emissions</div>
+            <!-- Suggestions -->
+            <div class="insight-card">
+                <div class="insight-header" style="background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);">
+                    <h5>
+                        <i class="fas fa-lightbulb"></i>
+                        Improvement Recommendations
+                    </h5>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-recycle"></i>
-                    </div>
-                    <div class="stat-value">{{project.waste_data.waste_factor}}</div>
-                    <div class="stat-label">Waste Factor</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-bolt"></i>
-                    </div>
-                    <div class="stat-value">{{project.design_data.energy_budget}} KW/h</div>
-                    <div class="stat-label">Energy Budget</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-star"></i>
-                    </div>
-                    <div class="stat-value">{{project.leed_graph_metrics.sustainability_recommendation_score}}</div>
-                    <div class="stat-label">LEED Score</div>
+                <div class="insight-body">
+                    <div class="score-badge" style="background: var(--secondary-green);">Potential Score: {{ project.leed_certification_insight.suggestion.score }}/100</div>
+                    <ul class="reasons-list">
+                        {% for i in project.leed_certification_insight.suggestion.reasons %}
+                        <li>{{ i }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
+        </div>
 
-            <!-- LEED Insights -->
-            <div id="leedInsightStructured" class="fade-in">
-                <!-- Current Scenario -->
-                <div class="insight-card">
-                    <div class="insight-header">
-                        <h5>
-                            <i class="fas fa-chart-line"></i>
-                            Current Scenario Analysis
-                        </h5>
-                    </div>
-                    <div class="insight-body">
-                        <div class="score-badge">Score: {{ project.leed_certification_insight.current_scenario.score }}/110</div>
-                          <ul class="reasons-list">
-                            {% for i in project.leed_certification_insight.current_scenario.reasons %}
-                              <li>{{ i }}</li>
-                            {% endfor %}
-                          </ul>
-                    </div>
-                </div>
+        <!-- Charts Section with Tabs -->
+        <div class="tabs-container">
+            <ul class="nav nav-tabs" id="chartTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast-panel" type="button" role="tab">
+                        <i class="fas fa-chart-line me-2"></i>Trend Forecast
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics-panel" type="button" role="tab">
+                        <i class="fas fa-chart-bar me-2"></i>Current Metrics
+                    </button>
+                </li>
+            </ul>
+        </div>
 
-                <!-- Suggestions -->
-                <div class="insight-card">
-                    <div class="insight-header" style="background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);">
-                        <h5>
-                            <i class="fas fa-lightbulb"></i>
-                            Improvement Recommendations
-                        </h5>
-                    </div>
-                    <div class="insight-body">
-                        <div class="score-badge" style="background: var(--secondary-green);">Potential Score: {{ project.leed_certification_insight.suggestion.score }}/100</div>
-                        <ul class="reasons-list">
-                          {% for i in project.leed_certification_insight.suggestion.reasons %}
-                            <li>{{ i }}</li>
-                          {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="chart-container fade-in" style="height: 400px;">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-line me-2"></i>
-                            Sustainability Trends
-                        </h3>
-                        <div class="loading-spinner">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
+        <div class="tab-content" id="chartTabContent">
+            <!-- Forecast Chart -->
+            <div class="tab-pane fade show active" id="forecast-panel" role="tabpanel">
+                <div class="chart-container">
+                    <h4 class="chart-title">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Sustainability Trends Forecast
+                    </h4>
+                    <div class="chart-wrapper">
                         <canvas id="forecastChart"></canvas>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="chart-container fade-in" style="height: 350px;">
-                        <h3 class="chart-title">
-                            <i class="fas fa-chart-bar me-2"></i>
-                            Performance Metrics
-                        </h3>
-                        <div class="loading-spinner">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
-                            </div>
-                        </div>
+            </div>
+
+            <!-- Metrics Chart -->
+            <div class="tab-pane fade" id="metrics-panel" role="tabpanel">
+                <div class="chart-container">
+                    <h4 class="chart-title">
+                        <i class="fas fa-chart-bar text-success"></i>
+                        Current Performance Metrics
+                    </h4>
+                    <div class="chart-wrapper">
                         <canvas id="metricsChart"></canvas>
                     </div>
                 </div>
             </div>
-
-
-            <!-- No Data Alert (hidden by default) -->
-            <div class="alert alert-custom d-none" role="alert" id="noDataAlert">
-                <i class="fas fa-info-circle alert-icon"></i>
-                <strong>No LEED insights available.</strong> Please ensure all project data has been properly uploaded and analyzed.
-            </div>
         </div>
     </div>
-    <!-- Back Button -->
-    <div class="mb-4">
-        <a href="{% url 'project_step' project.id project.current_step %}" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            Back to Project
-        </a>
-    </div>
+</div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sample data - replace with your actual data
-        const forecastData = {{ project.leed_combined_forecasting|safe }};
+<!-- Back Button -->
+<div class="mb-4">
+    <a href="{% url 'project_step' project.id project.current_step %}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Project
+    </a>
+</div>
 
-        const metrics = {{ project.leed_graph_metrics|safe }};
+{{ project.leed_combined_forecasting|json_script:"forecast-data" }}
+{{ project.leed_graph_metrics|json_script:"metrics-data" }}
 
-        function downloadScorecard() {
-            // Add download functionality here
-            alert('Downloading LEED Scorecard...');
+<!-- External Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get data from Django JSON scripts
+    const forecastDataElement = document.getElementById('forecast-data');
+    const metricsDataElement = document.getElementById('metrics-data');
+
+    let forecastData = {};
+    let metrics = {};
+
+    try {
+        forecastData = forecastDataElement ? JSON.parse(forecastDataElement.textContent) : {};
+        metrics = metricsDataElement ? JSON.parse(metricsDataElement.textContent) : {};
+    } catch (e) {
+        console.error('Error parsing JSON data:', e);
+        // Fallback sample data
+        forecastData = {
+            carbon_emission_trend: [
+                { year: '2024', emission: 1200 },
+                { year: '2025', emission: 1150 },
+                { year: '2026', emission: 1100 }
+            ],
+            waste_trend: [
+                { year: '2024', waste: 800 },
+                { year: '2025', waste: 750 },
+                { year: '2026', waste: 700 }
+            ],
+            energy_efficiency_trend: [
+                { year: '2024', score: 75 },
+                { year: '2025', score: 80 },
+                { year: '2026', score: 85 }
+            ]
+        };
+        metrics = {
+            total_carbon_emission: 1200,
+            predicted_waste_kg: 800,
+            energy_efficiency_score: 75,
+            sustainability_recommendation_score: 85,
+            sustainability_recommendation_grade: 'A'
+        };
+    }
+
+    let forecastChart = null;
+    let metricsChart = null;
+
+    function initializeForecastChart() {
+        const forecastCtx = document.getElementById('forecastChart');
+        if (!forecastCtx) return;
+
+        // Destroy existing chart if it exists
+        if (forecastChart) {
+            forecastChart.destroy();
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Add loading animation
-            setTimeout(() => {
-                document.querySelectorAll('.loading-spinner').forEach(spinner => {
-                    spinner.style.display = 'none';
-                });
-                initializeCharts();
-            }, 1000);
-        });
-
-        function initializeCharts() {
-            // Line chart for trends
-            const forecastCtx = document.getElementById('forecastChart').getContext('2d');
-            new Chart(forecastCtx, {
-                type: 'line',
-                data: {
-                    labels: forecastData.carbon_emission_trend.map(d => d.year),
-                    datasets: [
-                        {
-                            label: 'Carbon Emissions (kg CO₂)',
-                            data: forecastData.carbon_emission_trend.map(d => d.emission),
-                            borderColor: '#28a745',
-                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#28a745',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 6
-                        },
-                        {
-                            label: 'Waste (kg)',
-                            data: forecastData.waste_trend.map(d => d.waste),
-                            borderColor: '#dc3545',
-                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#dc3545',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 6
-                        },
-                        {
-                            label: 'Energy Efficiency (%)',
-                            data: forecastData.energy_efficiency_trend.map(d => d.score),
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                            fill: true,
-                            tension: 0.4,
-                            pointBackgroundColor: '#007bff',
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 6
+        forecastChart = new Chart(forecastCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: forecastData.carbon_emission_trend ? forecastData.carbon_emission_trend.map(d => d.year) : ['2024', '2025', '2026'],
+                datasets: [
+                    {
+                        label: 'Carbon Emissions (kg CO₂)',
+                        data: forecastData.carbon_emission_trend ? forecastData.carbon_emission_trend.map(d => d.emission) : [1200, 1150, 1100],
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54,162,235,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#36A2EB',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Waste (kg)',
+                        data: forecastData.waste_trend ? forecastData.waste_trend.map(d => d.waste) : [800, 750, 700],
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255,99,132,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#FF6384',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Energy Efficiency (%)',
+                        data: forecastData.energy_efficiency_trend ? forecastData.energy_efficiency_trend.map(d => d.score) : [75, 80, 85],
+                        borderColor: '#4BC0C0',
+                        backgroundColor: 'rgba(75,192,192,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#4BC0C0',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
                         }
-                    ]
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 8
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                padding: 20
-                            }
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            }
-                        }
-                    },
-                    elements: {
-                        line: {
-                            borderWidth: 3
+                    x: {
+                        grid: {
+                            display: false
                         }
                     }
                 }
-            });
+            }
+        });
+    }
 
-            // Bar chart for metrics
-            const metricsCtx = document.getElementById('metricsChart').getContext('2d');
-            new Chart(metricsCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Energy Efficiency', 'Waste Reduction', 'Carbon Savings', 'LEED Score'],
-                    datasets: [{
-                        data: [
-                            metrics.energy_efficiency_score,
-                            85, // Waste reduction percentage
-                            75, // Carbon savings percentage
-                            metrics.sustainability_recommendation_score
-                        ],
-                        backgroundColor: [
-                            '#28a745',
-                            '#20c997',
-                            '#007bff',
-                            '#ffc107'
-                        ],
-                        borderColor: '#fff',
-                        borderWidth: 3,
-                        hoverBorderWidth: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.label + ': ' + context.parsed + '%';
-                                }
+    function initializeMetricsChart() {
+        const metricsCtx = document.getElementById('metricsChart');
+        if (!metricsCtx) return;
+
+        // Destroy existing chart if it exists
+        if (metricsChart) {
+            metricsChart.destroy();
+        }
+
+        const totalCarbon = metrics.total_carbon_emission || 1200;
+        const totalWaste = metrics.predicted_waste_kg || 800;
+        const energyEfficiency = metrics.energy_efficiency_score || 75;
+        const wellScore = metrics.sustainability_recommendation_score || 85;
+
+        metricsChart = new Chart(metricsCtx.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: [
+                    'Carbon Emissions',
+                    'Waste Generation',
+                    'Energy Efficiency',
+                    'LEED Score'
+                ],
+                datasets: [{
+                    data: [totalCarbon, totalWaste, energyEfficiency, wellScore],
+                    backgroundColor: [
+                        '#FF6B6B',
+                        '#4ECDC4',
+                        '#45B7D1',
+                        '#96CEB4'
+                    ],
+                    borderColor: [
+                        '#FF5252',
+                        '#26A69A',
+                        '#2196F3',
+                        '#66BB6A'
+                    ],
+                    borderWidth: 3,
+                    hoverOffset: 15,
+                    hoverBorderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 14,
+                                weight: '600'
+                            },
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percent = ((value / total) * 100).toFixed(1);
+                                    return {
+                                        text: `${label}: ${value} (${percent}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor[i],
+                                        pointStyle: 'circle'
+                                    };
+                                });
                             }
                         }
                     },
-                    cutout: '60%'
-                }
-            });
-        }
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label;
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
 
-        // Add smooth scrolling for better UX
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                                let unit = '';
+                                let grade = '';
+
+                                switch(label) {
+                                    case 'Carbon Emissions':
+                                        unit = ' kg CO₂';
+                                        break;
+                                    case 'Waste Generation':
+                                        unit = ' kg';
+                                        break;
+                                    case 'Energy Efficiency':
+                                        unit = '%';
+                                        break;
+                                    case 'LEED Score':
+                                        unit = ' points';
+                                        grade = ` (Grade: ${metrics.sustainability_recommendation_grade || 'A'})`;
+                                        break;
+                                }
+
+                                return `${label}: ${value}${unit} (${percentage}%)${grade}`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+    }
+
+    // Initialize charts
+    function initializeCharts() {
+        setTimeout(() => {
+            initializeForecastChart();
+            initializeMetricsChart();
+        }, 100);
+    }
+
+    // Initialize charts on page load
+    initializeCharts();
+
+    // Handle tab switching
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+            const targetId = event.target.getAttribute('data-bs-target');
+
+            setTimeout(() => {
+                if (targetId === '#forecast-panel') {
+                    initializeForecastChart();
+                } else if (targetId === '#metrics-panel') {
+                    initializeMetricsChart();
+                }
+            }, 100);
+        });
+    });
+
+    // Fade-in animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.fade-in').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'all 0.6s ease';
+        observer.observe(el);
+    });
+
+    // Smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
                     behavior: 'smooth'
                 });
-            });
+            }
         });
+    });
+});
+</script>
 
-        // Add intersection observer for fade-in animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in').forEach(el => {
-            el.style.opacity = '0';
-            el.style.transform = 'translateY(20px)';
-            el.style.transition = 'all 0.6s ease';
-            observer.observe(el);
-        });
-    </script>
 {% endblock %}
