@@ -1,42 +1,486 @@
 {% extends "base.html" %}
-
 {% block content %}
-<h2>📁 Project Gallery: {{ project.name }}</h2>
 
-<!-- Add Document Form -->
-<form method="post" enctype="multipart/form-data" class="mb-4">
-  {% csrf_token %}
-  <div class="row align-items-end">
-    <div class="col-md-4">
-      <label for="id_title" class="form-label">Document Title</label>
-      <input type="text" name="title" id="id_title" class="form-control" required>
-    </div>
-    <div class="col-md-4">
-      <label for="id_file" class="form-label">Upload File</label>
-      <input type="file" name="file" id="id_file" class="form-control" required>
-    </div>
-    <div class="col-md-4">
-      <button type="submit" class="btn btn-success">➕ Add Document</button>
-    </div>
-  </div>
-</form>
+<style>
+    :root {
+        --primary-color: #2563eb;
+        --secondary-color: #64748b;
+        --success-color: #10b981;
+        --background-light: #f8fafc;
+        --border-color: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    }
 
-<div class="row">
-  {% if documents %}
-    {% for doc in documents %}
-      <div class="col-md-4 mb-3">
-        <div class="card">
-          <div class="card-body">
-            <h5>{{ doc.title }}</h5>
-            <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">View Document</a>
-          </div>
-        </div>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>No documents uploaded yet.</p>
-  {% endif %}
+    body {
+        background-color: var(--background-light);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--primary-color), #a8f63b);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 1rem 1rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .upload-section {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+    }
+
+    .upload-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-control {
+        border-radius: 0.5rem;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+    }
+
+    .btn-upload {
+        background: var(--success-color);
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+    }
+
+    .btn-upload:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        color: white;
+    }
+
+    .gallery-section {
+        margin-bottom: 2rem;
+    }
+
+    .gallery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .gallery-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin: 0;
+    }
+
+    .document-count {
+        background: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .document-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .document-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .document-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary-color);
+    }
+
+    .document-icon {
+        width: 3rem;
+        height: 3rem;
+        background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .document-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .document-meta {
+        color: var(--secondary-color);
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-action {
+        flex: 1;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+    }
+
+    .btn-primary-action {
+        background: var(--primary-color);
+        color: white;
+        border: 1px solid var(--primary-color);
+    }
+
+    .btn-primary-action:hover {
+        background: #1d4ed8;
+        color: white;
+    }
+
+    .btn-secondary-action {
+        background: white;
+        color: var(--secondary-color);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary-action:hover {
+        background: var(--background-light);
+        color: #475569;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: white;
+        border-radius: 1rem;
+        border: 2px dashed var(--border-color);
+    }
+
+    .empty-state-icon {
+        width: 4rem;
+        height: 4rem;
+        background: var(--background-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        color: var(--secondary-color);
+        font-size: 1.5rem;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state-text {
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+    }
+
+    .back-button {
+        background: white;
+        color: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-button:hover {
+        background: var(--background-light);
+        color: #475569;
+        transform: translateX(-2px);
+    }
+
+    .file-type-pdf { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    .file-type-doc { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .file-type-img { background: linear-gradient(135deg, #059669, #10b981); }
+    .file-type-default { background: linear-gradient(135deg, #64748b, #94a3b8); }
+
+    @media (max-width: 768px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+
+        .upload-section {
+            padding: 1.5rem;
+        }
+
+        .document-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .gallery-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    .drag-drop-area {
+        border: 2px dashed var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: var(--background-light);
+    }
+
+    .drag-drop-area:hover,
+    .drag-drop-area.dragover {
+        border-color: var(--primary-color);
+        background: rgb(37 99 235 / 0.05);
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="container">
+        <h1 class="page-title">
+            <i class="fas fa-folder-open"></i>
+            Project Gallery: {{ project.name }}
+        </h1>
+    </div>
 </div>
 
-<a href="{% url 'project_step' project.id project.current_step %}" class="btn btn-outline-secondary mt-3">← Back to Project</a>
+<div class="container">
+    <!-- Upload Section -->
+    <div class="upload-section">
+        <h3 class="upload-title">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Add New Document
+        </h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="id_title" class="form-label fw-semibold">Document Title</label>
+                    <input type="text" name="title" id="id_title" class="form-control"
+                           placeholder="Enter document title" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="id_file" class="form-label fw-semibold">Upload File</label>
+                    <div class="drag-drop-area">
+                        <input type="file" name="file" id="id_file" class="form-control"
+                               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif" required>
+                        <small class="text-muted mt-2 d-block">
+                            <i class="fas fa-info-circle"></i>
+                            Supports PDF, DOC, DOCX, JPG, PNG, GIF
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-upload w-100">
+                        <i class="fas fa-plus"></i>
+                        Add Document
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Gallery Section -->
+    <div class="gallery-section">
+        <div class="gallery-header">
+            <h2 class="gallery-title">Document Gallery</h2>
+            <span class="document-count">
+                <i class="fas fa-file-alt"></i>
+                {{ documents.count }} Document{{ documents.count|pluralize }}
+            </span>
+        </div>
+
+        {% if documents %}
+            <div class="document-grid">
+                {% for doc in documents %}
+                    <div class="document-card">
+                        <div class="document-icon {% if doc.file.name|slice:'-4:' == '.pdf' %}file-type-pdf{% elif doc.file.name|slice:'-4:' == '.doc' or doc.file.name|slice:'-5:' == '.docx' %}file-type-doc{% elif doc.file.name|slice:'-4:' == '.jpg' or doc.file.name|slice:'-5:' == '.jpeg' or doc.file.name|slice:'-4:' == '.png' or doc.file.name|slice:'-4:' == '.gif' %}file-type-img{% else %}file-type-default{% endif %}">
+                            {% if doc.file.name|slice:'-4:' == '.pdf' %}
+                                <i class="fas fa-file-pdf"></i>
+                            {% elif doc.file.name|slice:'-4:' == '.doc' or doc.file.name|slice:'-5:' == '.docx' %}
+                                <i class="fas fa-file-word"></i>
+                            {% elif doc.file.name|slice:'-4:' == '.jpg' or doc.file.name|slice:'-5:' == '.jpeg' or doc.file.name|slice:'-4:' == '.png' or doc.file.name|slice:'-4:' == '.gif' %}
+                                <i class="fas fa-image"></i>
+                            {% else %}
+                                <i class="fas fa-file-alt"></i>
+                            {% endif %}
+                        </div>
+                        <h4 class="document-title">{{ doc.title }}</h4>
+                        <div class="document-meta">
+                            <i class="fas fa-calendar-alt"></i>
+                            {% if doc.created_at %}
+                                Uploaded {{ doc.created_at|timesince }} ago
+                            {% else %}
+                                Recently uploaded
+                            {% endif %}
+                            {% if doc.file.size %}
+                                • {{ doc.file.size|filesizeformat }}
+                            {% endif %}
+                        </div>
+                        <div class="document-actions">
+                            <a href="{{ doc.file.url }}" target="_blank" class="btn-action btn-primary-action">
+                                <i class="fas fa-eye"></i>
+                                View
+                            </a>
+                            <a href="{{ doc.file.url }}" download class="btn-action btn-secondary-action">
+                                <i class="fas fa-download"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <h3 class="empty-state-title">No documents uploaded yet</h3>
+                <p class="empty-state-text">
+                    Start by uploading your first project document using the form above.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-4">
+        <a href="{% url 'project_step' project.id project.current_step %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Project
+        </a>
+    </div>
+</div>
+
+<script>
+    // Enhanced file upload with drag and drop
+    const fileInput = document.getElementById('id_file');
+    const dragDropArea = document.querySelector('.drag-drop-area');
+
+    if (dragDropArea && fileInput) {
+        dragDropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.add('dragover');
+        });
+
+        dragDropArea.addEventListener('dragleave', () => {
+            dragDropArea.classList.remove('dragover');
+        });
+
+        dragDropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragDropArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+            }
+        });
+    }
+
+    // Add smooth animations on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.document-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+
+    // Form validation feedback
+    const form = document.querySelector('form');
+    const titleInput = document.getElementById('id_title');
+
+    if (form && titleInput) {
+        form.addEventListener('submit', (e) => {
+            if (!titleInput.value.trim()) {
+                e.preventDefault();
+                titleInput.focus();
+                titleInput.classList.add('is-invalid');
+            }
+        });
+
+        titleInput.addEventListener('input', () => {
+            titleInput.classList.remove('is-invalid');
+        });
+    }
+</script>
 {% endblock %}

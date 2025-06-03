@@ -307,6 +307,25 @@
             color: #6c757d;
             font-weight: 500;
         }
+        .back-button {
+        background: white;
+        color: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-button:hover {
+        background: var(--background-light);
+        color: #475569;
+        transform: translateX(-2px);
+    }
     </style>
     <div class="main-container">
         <!-- Header Section -->
@@ -463,6 +482,13 @@
                 <strong>No LEED insights available.</strong> Please ensure all project data has been properly uploaded and analyzed.
             </div>
         </div>
+    </div>
+    <!-- Back Button -->
+    <div class="mb-4">
+        <a href="{% url 'project_step' project.id project.current_step %}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            Back to Project
+        </a>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
