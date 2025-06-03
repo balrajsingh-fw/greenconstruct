@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import datetime
 
 from difflib import get_close_matches
 from django.shortcuts import render, get_object_or_404, redirect
@@ -181,8 +182,23 @@ def analyze_pdf_from_file(file_path, prompt):
 
 def dashboard(request):
     projects = Project.objects.all().order_by('-created_at')
-    return render(request, "dashboard.html", {"projects": projects})
 
+    # Get current hour in 24-hour format
+    current_hour = datetime.now().hour
+
+    if 5 <= current_hour < 12:
+        time_of_day = "Morning"
+    elif 12 <= current_hour < 17:
+        time_of_day = "Afternoon"
+    elif 17 <= current_hour < 21:
+        time_of_day = "Evening"
+    else:
+        time_of_day = "Night"
+
+    return render(request, "dashboard.html", {
+        "projects": projects,
+        "time_of_day": time_of_day,
+    })
 
 def generate_leed_certification_insight(project):
     # Gather existing insights from project
