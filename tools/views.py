@@ -259,15 +259,8 @@ def generate_leed_certification_insight(project):
         "sustainability_recommendation_grade": string
       }},
       "scorecard": {{
-        "Integrative Process, Planning and Assessments (IP): {{ 
-            "integrative_design_process": int,
-            "green_leases": int 
-        }},
-        "Location and Transportation": {{
-            "Sensitive Land Protection": int,
-            ...and so on
-        }},... and so on
-      }}
+        leed scorecard according to scorecard format
+        }}
     }}
     """
 
@@ -627,7 +620,7 @@ def generate_leed_certification_insight(project):
     else:
         return ""
 
-    prompt += f"This is general scorecard for {project.leed_certification}, the format and keys of scorecard generated should be exactly similar to this one, \ {scorecard_json}"
+    prompt += f"This is general scorecard for {project.leed_certification}, the format and keys of scorecard generated should be exactly similar to this one, just add one more key along with total_points for each key in this json having name 'actual_points' which will contain actual score achieved for each category \ {scorecard_json}"
     response = analyze_pdf_from_file(
         file_path=file_path,
         prompt=prompt
@@ -664,18 +657,19 @@ def download_leed_scorecard(request, project_id):
     ws.title = "LEED Scorecard"
 
     # Header
-    ws.append(["Category", "Total Points", "Criterion Code", "Criterion Name", "Points"])
+    ws.append(["Category", "Total Points", "Actual Points", "Criterion Code", "Criterion Name", "Points"])
 
     for category, content in leed_scorecard.items():
         if isinstance(content, (int, float, str)):
             continue
         total_points = content.get("total_points", None)
+        actual_points = content.get("actual_points", None)
         criteria = content.get("criteria", {})
         print(total_points, criteria)
         for full_key, point_value in criteria.items():
             print([category, total_points, full_key, point_value.get("name"),
                        point_value.get("points")])
-            ws.append([category, total_points, full_key, point_value.get("name"),
+            ws.append([category, total_points, actual_points, full_key, point_value.get("name"),
                        point_value.get("points")])
 
     # Save Excel to memory
