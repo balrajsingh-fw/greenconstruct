@@ -1,135 +1,444 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-  <h2>Create New Sustainability Project - Step 1: Carbon Tool</h2>
-
-  <form method="POST">
-    {% csrf_token %}
-    {{ formset.management_form }}
-
-    <!-- Project Name -->
-    <div class="form-group mb-3">
-        <label for="building_type"><strong>Building Type</strong></label>
-      <select id="building_type" name="building_type" class="form-control" required>
-        <option value="" disabled selected>Select a building type</option>
-        {% for btype in building_types %}
-          <option value="{{ btype.key }}">{{ btype.label }}</option>
-        {% endfor %}
-      </select>
-      <label for="name"><strong>Project Name</strong></label>
-      <input type="text" id="name" name="name" class="form-control" required />
-    </div>
-    <div class="form-group mb-3">
-  <label for="leed_certification"><strong>LEED Certification</strong></label>
-  <select id="leed_certification" name="leed_certification" class="form-control" required>
-    <option value="">-- Select LEED Type --</option>
-    <option value="LEED BD+C(New Construction)">LEED BD+C (New Construction)</option>
-    <option value="LEED BD+C(Core and Shell)">LEED BD+C (Core and Shell)</option>
-    <option value="LEED ID+C">LEED ID + C (Commercial Interiors)</option>
-    <option value="LEED O+M">LEED O + M (Existing Buildings)</option>
-  </select>
-</div>
-
-<div class="form-group mb-3">
-  <label for="well_certification"><strong>WELL Certification</strong></label>
-  <select id="well_certification" name="well_certification" class="form-control" required>
-    <option value="">-- Select WELL Type --</option>
-    <option value="WELL v2">WELL Building Standard (WELL v2)</option>
-  </select>
-</div>
-
-    <!-- Material Formset -->
-    <div id="formset-container">
-      {% for form in formset %}
-        <div class="border p-3 mb-3 rounded shadow-sm bg-light">
-          <div class="form-group">
-            {{ form.material.label_tag }} {{ form.material }}
-          </div>
-          <div class="form-group">
-            {{ form.quantity.label_tag }} {{ form.quantity }}
-          </div>
+<div class="container-fluid px-4 py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <!-- Header Section -->
+      <div class="text-center mb-5">
+        <div class="d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow-lg mb-4" style="width: 80px; height: 80px;">
+          <i class="fas fa-leaf text-success" style="font-size: 2rem;"></i>
         </div>
-      {% endfor %}
+        <h1 class="display-5 fw-bold text-white mb-3">Create Sustainability Project</h1>
+        <p class="lead text-white-50 mb-0">Step 1: Carbon Tool Configuration</p>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar bg-success" role="progressbar" style="width: 33%"></div>
+        </div>
+      </div>
+
+      <!-- Main Form Card -->
+      <div class="card border-0 shadow-2xl rounded-4 overflow-hidden">
+        <div class="card-body p-0">
+          <form method="POST" id="sustainability-form">
+            {% csrf_token %}
+            {{ formset.management_form }}
+
+            <!-- Project Configuration Section -->
+            <div class="bg-gradient-primary p-4">
+              <h3 class="text-white mb-0 d-flex align-items-center">
+                <i class="fas fa-cogs me-3"></i>Project Configuration
+              </h3>
+            </div>
+
+            <div class="p-4 p-lg-5">
+              <div class="row g-4">
+                <!-- Building Type -->
+                <div class="col-md-6">
+                  <label for="building_type" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-building text-primary me-2"></i>Building Type
+                  </label>
+                  <select id="building_type" name="building_type" class="form-select form-select-lg border-2 rounded-3" required>
+                    <option value="" disabled selected>Choose building type...</option>
+                    {% for btype in building_types %}
+                      <option value="{{ btype.key }}">{{ btype.label }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <!-- Project Name -->
+                <div class="col-md-6">
+                  <label for="name" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-project-diagram text-primary me-2"></i>Project Name
+                  </label>
+                  <input type="text" id="name" name="name" class="form-control form-control-lg border-2 rounded-3"
+                         placeholder="Enter project name..." required />
+                </div>
+
+                <!-- LEED Certification -->
+                <div class="col-md-6">
+                  <label for="leed_certification" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-certificate text-success me-2"></i>LEED Certification
+                  </label>
+                  <select id="leed_certification" name="leed_certification" class="form-select form-select-lg border-2 rounded-3" required>
+                    <option value="">Select LEED certification...</option>
+                    <option value="LEED BD+C(New Construction)">LEED BD+C (New Construction)</option>
+                    <option value="LEED BD+C(Core and Shell)">LEED BD+C (Core and Shell)</option>
+                    <option value="LEED ID+C">LEED ID + C (Commercial Interiors)</option>
+                    <option value="LEED O+M">LEED O + M (Existing Buildings)</option>
+                  </select>
+                </div>
+
+                <!-- WELL Certification -->
+                <div class="col-md-6">
+                  <label for="well_certification" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-heart text-danger me-2"></i>WELL Certification
+                  </label>
+                  <select id="well_certification" name="well_certification" class="form-select form-select-lg border-2 rounded-3" required>
+                    <option value="">Select WELL certification...</option>
+                    <option value="WELL v2">WELL Building Standard (WELL v2)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Materials Section -->
+            <div class="bg-light border-top">
+              <div class="p-4">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                  <h3 class="mb-0 d-flex align-items-center text-dark">
+                    <i class="fas fa-boxes text-warning me-3"></i>Materials & Quantities
+                  </h3>
+                  <button type="button" class="btn btn-success btn-lg rounded-pill px-4 shadow-sm" onclick="addForm()">
+                    <i class="fas fa-plus me-2"></i>Add Material
+                  </button>
+                </div>
+
+                <div id="formset-container" class="row g-3">
+                  {% for form in formset %}
+                    <div class="col-lg-6">
+                      <div class="card border-0 shadow-sm rounded-3 h-100 material-card">
+                        <div class="card-body p-4">
+                          <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="card-title mb-0 text-primary">Material {{ forloop.counter }}</h5>
+                            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeForm(this)" style="width: 32px; height: 32px;">
+                              <i class="fas fa-times"></i>
+                            </button>
+                          </div>
+
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">{{ form.material.label }}</label>
+                            {{ form.material }}
+                          </div>
+
+                          <div class="mb-0">
+                            <label class="form-label fw-semibold">{{ form.quantity.label }}</label>
+                            <div class="input-group">
+                              {{ form.quantity }}
+                              <span class="input-group-text bg-primary text-white">
+                                <i class="fas fa-weight-hanging"></i>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Location Section -->
+            <div class="p-4 p-lg-5 border-top">
+              <h3 class="mb-4 d-flex align-items-center text-dark">
+                <i class="fas fa-map-marker-alt text-info me-3"></i>Project Location
+              </h3>
+
+              <!-- Hidden inputs -->
+              <input type="hidden" id="id_latitude" name="latitude" />
+              <input type="hidden" id="id_longitude" name="longitude" />
+              <input type="hidden" id="id_city" name="city" />
+              <input type="hidden" id="id_country" name="country" />
+
+              <!-- Address Display -->
+              <div class="mb-4">
+                <label for="id_address_display" class="form-label fw-semibold text-dark mb-2">
+                  <i class="fas fa-map-pin text-info me-2"></i>Selected Location
+                </label>
+                <input type="text" id="id_address_display" class="form-control form-control-lg border-2 rounded-3"
+                       placeholder="Click on the map to select location..." readonly>
+              </div>
+
+              <!-- Map Container -->
+              <div class="position-relative">
+                <div id="map" class="rounded-4 shadow-lg border-3 border-primary" style="height: 450px;"></div>
+                <div class="position-absolute top-0 start-0 m-3 bg-white rounded-3 p-2 shadow-sm">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>Click anywhere on the map to select your project location
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="bg-gradient-success p-4">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="text-white">
+                  <h5 class="mb-1">Ready to proceed?</h5>
+                  <small class="opacity-75">Complete the form to continue to the next step</small>
+                </div>
+                <button type="submit" class="btn btn-light btn-lg px-5 py-3 rounded-pill shadow-lg">
+                  <i class="fas fa-arrow-right me-2"></i>Create Project & Continue
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-
-    <button type="button" class="btn btn-secondary mb-3" onclick="addForm()">➕ Add Material</button><br>
-
-    <!-- Hidden inputs to hold lat/lng/city/country -->
-    <input type="hidden" id="id_latitude" name="latitude" />
-    <input type="hidden" id="id_longitude" name="longitude" />
-    <input type="hidden" id="id_city" name="city" />
-    <input type="hidden" id="id_country" name="country" />
-
-    <!-- Optional visible address display -->
-    <div class="form-group">
-      <label for="id_address_display"><strong>Selected Location</strong></label>
-      <input type="text" id="id_address_display" class="form-control" readonly>
-    </div>
-
-    <!-- Map Container -->
-    <div id="map" style="height: 400px;" class="my-3"></div>
-
-    <button type="submit" class="btn btn-primary">Create Project & Continue</button>
-  </form>
+  </div>
 </div>
+
+<style>
+/* Custom CSS for enhanced styling */
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+}
+
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.form-control, .form-select {
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  transform: translateY(-1px);
+}
+
+.material-card {
+  transition: all 0.3s ease;
+}
+
+.material-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn {
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+}
+
+/* Map styling */
+.leaflet-container {
+  border-radius: 1rem !important;
+}
+
+/* Form validation styling */
+.form-control.is-invalid, .form-select.is-invalid {
+  border-color: #dc3545;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  #map {
+    height: 300px !important;
+  }
+
+  .display-5 {
+    font-size: 2rem;
+  }
+}
+</style>
 
 <script>
-  function addForm() {
-    const container = document.getElementById('formset-container');
-    const totalForms = document.getElementById('id_form-TOTAL_FORMS');
-    const currentFormCount = parseInt(totalForms.value);
-    const emptyFormHtml = container.children[0].outerHTML.replace(/form-0/g, `form-${currentFormCount}`);
-    container.insertAdjacentHTML('beforeend', emptyFormHtml);
-    totalForms.value = currentFormCount + 1;
+// Enhanced form functionality
+function addForm() {
+  const container = document.getElementById('formset-container');
+  const totalForms = document.getElementById('id_form-TOTAL_FORMS');
+  const currentFormCount = parseInt(totalForms.value);
+
+  // Create new form HTML
+  const newFormHtml = `
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-3 h-100 material-card">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="card-title mb-0 text-primary">Material ${currentFormCount + 1}</h5>
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-circle" onclick="removeForm(this)" style="width: 32px; height: 32px;">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Material</label>
+            <select name="form-${currentFormCount}-material" class="form-select border-2 rounded-3" required>
+              <option value="">Select material...</option>
+            </select>
+          </div>
+
+          <div class="mb-0">
+            <label class="form-label fw-semibold">Quantity</label>
+            <div class="input-group">
+              <input type="number" name="form-${currentFormCount}-quantity" class="form-control border-2 rounded-3" placeholder="0" required>
+              <span class="input-group-text bg-primary text-white">
+                <i class="fas fa-weight-hanging"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  container.insertAdjacentHTML('beforeend', newFormHtml);
+  totalForms.value = currentFormCount + 1;
+
+  // Add animation
+  const newCard = container.lastElementChild;
+  newCard.style.opacity = '0';
+  newCard.style.transform = 'translateY(20px)';
+  setTimeout(() => {
+    newCard.style.transition = 'all 0.3s ease';
+    newCard.style.opacity = '1';
+    newCard.style.transform = 'translateY(0)';
+  }, 100);
+}
+
+function removeForm(button) {
+  const formCard = button.closest('.col-lg-6');
+  if (document.querySelectorAll('.material-card').length > 1) {
+    formCard.style.transition = 'all 0.3s ease';
+    formCard.style.opacity = '0';
+    formCard.style.transform = 'translateX(-100%)';
+    setTimeout(() => {
+      formCard.remove();
+      updateFormNumbers();
+    }, 300);
+  }
+}
+
+function updateFormNumbers() {
+  const cards = document.querySelectorAll('.material-card');
+  cards.forEach((card, index) => {
+    const title = card.querySelector('.card-title');
+    title.textContent = `Material ${index + 1}`;
+  });
+}
+
+// Enhanced map functionality
+const defaultLat = 20.0;
+const defaultLng = 77.0;
+
+const map = L.map('map').setView([defaultLat, defaultLng], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+}).addTo(map);
+
+let marker;
+
+function onMapClick(e) {
+  const lat = e.latlng.lat.toFixed(6);
+  const lng = e.latlng.lng.toFixed(6);
+
+  document.getElementById('id_latitude').value = lat;
+  document.getElementById('id_longitude').value = lng;
+
+  if (marker) {
+    map.removeLayer(marker);
   }
 
-  const defaultLat = 20.0;
-  const defaultLng = 77.0;
+  // Custom marker icon
+  const customIcon = L.divIcon({
+    html: '<i class="fas fa-map-marker-alt" style="color: #667eea; font-size: 24px;"></i>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    className: 'custom-div-icon'
+  });
 
-  const map = L.map('map').setView([defaultLat, defaultLng], 5);
+  marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
+  // Show loading state
+  document.getElementById('id_address_display').value = 'Loading location...';
 
-  let marker;
+  // Reverse geocode
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+    .then(response => response.json())
+    .then(data => {
+      const address = data.address || {};
+      const city = address.city || address.town || address.village || '';
+      const country = address.country || '';
+      const display = data.display_name || `${city}, ${country}`;
 
-  function onMapClick(e) {
-    const lat = e.latlng.lat.toFixed(6);
-    const lng = e.latlng.lng.toFixed(6);
+      document.getElementById('id_city').value = city;
+      document.getElementById('id_country').value = country;
+      document.getElementById('id_address_display').value = display;
 
-    document.getElementById('id_latitude').value = lat;
-    document.getElementById('id_longitude').value = lng;
+      marker.bindPopup(`
+        <div class="text-center p-2">
+          <i class="fas fa-map-marker-alt text-primary mb-2" style="font-size: 20px;"></i>
+          <br><strong>${display}</strong>
+        </div>
+      `).openPopup();
+    })
+    .catch(error => {
+      console.error('Reverse geocoding failed:', error);
+      document.getElementById('id_address_display').value = 'Location selected';
+      marker.bindPopup(`
+        <div class="text-center p-2">
+          <i class="fas fa-map-marker-alt text-primary mb-2" style="font-size: 20px;"></i>
+          <br><strong>Location Selected</strong>
+        </div>
+      `).openPopup();
+    });
+}
 
-    if (marker) {
-      map.removeLayer(marker);
+map.on('click', onMapClick);
+
+// Form validation
+document.getElementById('sustainability-form').addEventListener('submit', function(e) {
+  let isValid = true;
+  const requiredFields = this.querySelectorAll('[required]');
+
+  requiredFields.forEach(field => {
+    if (!field.value.trim()) {
+      field.classList.add('is-invalid');
+      isValid = false;
+    } else {
+      field.classList.remove('is-invalid');
     }
+  });
 
-    marker = L.marker([lat, lng]).addTo(map);
-
-    // Reverse geocode
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-      .then(response => response.json())
-      .then(data => {
-        const address = data.address || {};
-        const city = address.city || address.town || address.village || '';
-        const country = address.country || '';
-        const display = data.display_name || `${city}, ${country}`;
-
-        document.getElementById('id_city').value = city;
-        document.getElementById('id_country').value = country;
-        document.getElementById('id_address_display').value = display;
-
-        marker.bindPopup(`<strong>${display}</strong>`).openPopup();
-      })
-      .catch(error => {
-        console.error('Reverse geocoding failed:', error);
-        marker.bindPopup("Location selected").openPopup();
-      });
+  if (!isValid) {
+    e.preventDefault();
+    // Scroll to first invalid field
+    const firstInvalid = this.querySelector('.is-invalid');
+    if (firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   }
+});
 
-  map.on('click', onMapClick);
+// Remove invalid class on input
+document.addEventListener('input', function(e) {
+  if (e.target.classList.contains('is-invalid')) {
+    e.target.classList.remove('is-invalid');
+  }
+});
+
+// Add Font Awesome if not already included
+if (!document.querySelector('link[href*="font-awesome"]')) {
+  const fontAwesome = document.createElement('link');
+  fontAwesome.rel = 'stylesheet';
+  fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+  document.head.appendChild(fontAwesome);
+}
 </script>
 {% endblock %}
