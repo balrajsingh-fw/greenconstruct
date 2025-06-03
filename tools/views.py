@@ -665,10 +665,7 @@ def download_leed_scorecard(request, project_id):
         total_points = content.get("total_points", None)
         actual_points = content.get("actual_points", None)
         criteria = content.get("criteria", {})
-        print(total_points, criteria)
         for full_key, point_value in criteria.items():
-            print([category, total_points, full_key, point_value.get("name"),
-                       point_value.get("points")])
             ws.append([category, total_points, actual_points, full_key, point_value.get("name"),
                        point_value.get("points")])
 
