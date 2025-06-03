@@ -1,202 +1,649 @@
 {% extends "base.html" %}
-
 {% block content %}
-<div class="container mt-4">
-  <h2>LEED Certification Analysis for Project: {{ project.name }}</h2>
-  <button onclick="window.location.href='/download-leed-scorecard/{{ project.id }}'">
-    Download Updated Scorecard
-  </button>
-  <hr>
 
-  <div class="mb-3">
-    <h4>LEED Certification:</h4>
-    <p>{{ project.leed_certification|default:"Not specified" }}</p>
-  </div>
-  <div class="mb-3">
-{% if project.leed_certification_insight %}
-  {% load static %}
-  {{ project.leed_certification_insight|json_script:"leedInsight" }}
-
-  <div id="leedInsightStructured" class="my-4"></div>
-
-  <script>
-    const leedInsight = JSON.parse(document.getElementById('leedInsight').textContent);
-    const container = document.getElementById('leedInsightStructured');
-
-    function createInsightSection(title, data) {
-      const section = document.createElement('div');
-      section.classList.add('card', 'mb-3', 'shadow-sm');
-
-      const header = document.createElement('div');
-      header.classList.add('card-header', 'bg-primary', 'text-white');
-      header.innerHTML = `<h5 class="mb-0">${title}</h5>`;
-      section.appendChild(header);
-
-      const body = document.createElement('div');
-      body.classList.add('card-body', 'bg-light');
-
-      const score = document.createElement('h6');
-      score.innerHTML = `<strong>Score:</strong> ${data.score}`;
-      body.appendChild(score);
-
-      const reasonsList = document.createElement('ul');
-      data.reasons.forEach(reason => {
-        const li = document.createElement('li');
-        li.textContent = reason;
-        reasonsList.appendChild(li);
-      });
-
-      body.appendChild(reasonsList);
-      section.appendChild(body);
-      return section;
-    }
-
-    if (leedInsight.current_scenario) {
-      container.appendChild(createInsightSection('Current Scenario', leedInsight.current_scenario));
-    }
-    if (leedInsight.suggestion) {
-      container.appendChild(createInsightSection('Suggestion', leedInsight.suggestion));
-    }
-  </script>
-{% else %}
-  <div class="alert alert-warning mt-3" role="alert">
-    No LEED insights available.
-  </div>
-{% endif %}
-  </div>
-
-  <canvas id="forecastChart" width="400" height="200"></canvas>
-<canvas id="metricsChart" width="400" height="300"></canvas>
-
-  {{ project.leed_combined_forecasting|json_script:"forecast-data" }}
-  {{ project.leed_graph_metrics|json_script:"metrics-data" }}
-
-</div>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
-    const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
-
-    // Line chart
-    const forecastCtx = document.getElementById('forecastChart').getContext('2d');
-    new Chart(forecastCtx, {
-      type: 'line',
-      data: {
-        labels: forecastData.carbon_emission_trend.map(d => d.year),
-        datasets: [
-          {
-            label: 'Carbon Emissions (kg CO₂)',
-            data: forecastData.carbon_emission_trend.map(d => d.emission),
-            borderColor: '#36A2EB',
-            backgroundColor: 'rgba(54,162,235,0.2)',
-            fill: true,
-            tension: 0.3
-          },
-          {
-            label: 'Waste (kg)',
-            data: forecastData.waste_trend.map(d => d.waste),
-            borderColor: '#FF6384',
-            backgroundColor: 'rgba(255,99,132,0.2)',
-            fill: true,
-            tension: 0.3
-          },
-          {
-            label: 'Energy Efficiency (%)',
-            data: forecastData.energy_efficiency_trend.map(d => d.score),
-            borderColor: '#4BC0C0',
-            backgroundColor: 'rgba(75,192,192,0.2)',
-            fill: true,
-            tension: 0.3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: { beginAtZero: true }
+<style>
+        :root {
+            --primary-green: #28a745;
+            --secondary-green: #20c997;
+            --accent-blue: #007bff;
+            --warning-orange: #fd7e14;
+            --danger-red: #dc3545;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --hover-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
         }
-      }
-    });
 
-    // Bar chart
-    const metricsCtx = document.getElementById('metricsChart').getContext('2d');
-    new Chart(metricsCtx, {
-      type: 'bar',
-      data: {
-        labels: [
-          'Total Carbon Emission',
-          'Predicted Waste (kg)',
-          'Energy Efficiency (%)',
-          'USGBC LEED Score'
-        ],
-        datasets: [
-          {
-            label: 'Main Metrics',
-            data: [
-              metrics.total_carbon_emission,
-              metrics.predicted_waste_kg,
-              metrics.energy_efficiency_score,
-              null
-            ],
-            backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
-            xAxisID: 'xMain'
-          },
-          {
-            label: 'USGBC LEED Score',
-            data: [null, null, null, metrics.sustainability_recommendation_score],
-            backgroundColor: [null, null, null, '#FFCE56'],
-            xAxisID: 'xSecondary'
-          }
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        scales: {
-          xMain: {
-            type: 'linear',
-            position: 'top',
-            beginAtZero: true,
-            max: 1000,
-            title: { display: true, text: 'Main Metrics Scale' }
-          },
-          xSecondary: {
-            type: 'linear',
-            position: 'bottom',
-            beginAtZero: true,
-            min: 0,
-            max: 110,
-            grid: { drawOnChartArea: false },
-            title: { display: true, text: 'USGBC LEED Score' }
-          }
-        },
-        plugins: {
-          legend: { display: true },
-          tooltip: {
-            enabled: true,
-            callbacks: {
-              label: function (context) {
-                const label = context.dataset.label || '';
-                if (label === 'USGBC LEED Score') {
-                  return `USGBC LEED Score: ${context.raw} (Grade: ${metrics.sustainability_recommendation_grade})`;
-                }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-                const originalValues = {
-                  'Total Carbon Emission': metrics.total_carbon_emission,
-                  'Predicted Waste (kg)': metrics.predicted_waste_kg,
-                  'Energy Efficiency (%)': metrics.energy_efficiency_score
-                };
-                if (originalValues[context.label]) {
-                  return `${context.label}: ${originalValues[context.label]}`;
-                }
-                return `${context.label}: ${context.raw}`;
-              }
+        .main-container {
+            background: white;
+            border-radius: 20px;
+            margin: 2rem auto;
+            max-width: 1400px;
+            box-shadow: var(--hover-shadow);
+            overflow: hidden;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
+            color: white;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(0) translateY(0); }
+            100% { transform: translateX(-100px) translateY(-100px); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .project-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .download-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .download-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .content-section {
+            padding: 2rem;
+        }
+
+        .certification-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .certification-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .certification-level {
+            font-size: 3rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .insight-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .insight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .insight-header {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #6610f2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0;
+        }
+
+        .insight-header h5 {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insight-body {
+            background: var(--light-bg);
+            padding: 1.5rem;
+        }
+
+        .score-badge {
+            background: var(--primary-green);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+
+        .reasons-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reasons-list li {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-green);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .reasons-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-green);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            position: relative;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .chart-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--primary-green);
+            margin: 0.5rem auto;
+            border-radius: 2px;
+        }
+
+        .alert-custom {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 1.5rem;
+            color: #2d3436;
+            box-shadow: var(--card-shadow);
+        }
+
+        .alert-custom .alert-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 1rem;
+                border-radius: 15px;
             }
-          }
-        }
-      }
-    });
-  });
-</script>
 
+            .header-section {
+                padding: 1.5rem;
+            }
+
+            .project-title {
+                font-size: 2rem;
+            }
+
+            .content-section {
+                padding: 1rem;
+            }
+
+            .certification-level {
+                font-size: 2rem;
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-green);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+    </style>
+    <div class="main-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-content">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="project-title">
+                            <i class="fas fa-leaf me-3"></i>
+                            LEED Analysis Dashboard
+                        </h1>
+                        <p class="project-subtitle">
+                            <i class="fas fa-building me-2"></i>
+                            Project: Sample Green Building Project
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                    <a class="btn download-btn" href="/download-leed-scorecard/{{ project.id }}">
+                        <i class="fas fa-download me-2"></i>
+                        Download Scorecard
+                    </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Section -->
+        <div class="content-section">
+            <!-- Certification Status -->
+            <div class="certification-card fade-in">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="mb-2">
+                            <i class="fas fa-certificate me-2"></i>
+                            LEED Certification Status
+                        </h4>
+                        <div class="certification-level">{{project.leed_graph_metrics.sustainability_recommendation_score}}</div>
+                        <p class="mb-0 mt-2 opacity-75">{{project.leed_graph_metrics.sustainability_recommendation_grade}}</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div style="font-size: 4rem; opacity: 0.7;">
+                            <i class="fas fa-award"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-grid fade-in">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-cloud"></i>
+                    </div>
+                    <div class="stat-value">{{project.carbon_data.emission}}</div>
+                    <div class="stat-label">kg CO₂ Emissions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <div class="stat-value">{{project.waste_data.waste_factor}}</div>
+                    <div class="stat-label">Waste Factor</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-value">{{project.design_data.energy_budget}} KW/h</div>
+                    <div class="stat-label">Energy Budget</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-value">85</div>
+                    <div class="stat-label">LEED Score</div>
+                </div>
+            </div>
+
+            <!-- LEED Insights -->
+            <div id="leedInsightStructured" class="fade-in">
+                <!-- Current Scenario -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <h5>
+                            <i class="fas fa-chart-line"></i>
+                            Current Scenario Analysis
+                        </h5>
+                    </div>
+                    <div class="insight-body">
+                        <div class="score-badge">Score: {{ project.leed_certification_insight.current_scenario.score }}/110</div>
+                          <ul class="reasons-list">
+                            {% for i in project.leed_certification_insight.current_scenario.reasons %}
+                              <li>{{ i }}</li>
+                            {% endfor %}
+                          </ul>
+                    </div>
+                </div>
+
+                <!-- Suggestions -->
+                <div class="insight-card">
+                    <div class="insight-header" style="background: linear-gradient(135deg, var(--secondary-green) 0%, var(--primary-green) 100%);">
+                        <h5>
+                            <i class="fas fa-lightbulb"></i>
+                            Improvement Recommendations
+                        </h5>
+                    </div>
+                    <div class="insight-body">
+                        <div class="score-badge" style="background: var(--secondary-green);">Potential Score: {{ project.leed_certification_insight.suggestion.score }}/100</div>
+                        <ul class="reasons-list">
+                          {% for i in project.leed_certification_insight.suggestion.reasons %}
+                            <li>{{ i }}</li>
+                          {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="chart-container fade-in" style="height: 400px;">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Sustainability Trends
+                        </h3>
+                        <div class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="chart-container fade-in" style="height: 350px;">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Performance Metrics
+                        </h3>
+                        <div class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <canvas id="metricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- No Data Alert (hidden by default) -->
+            <div class="alert alert-custom d-none" role="alert" id="noDataAlert">
+                <i class="fas fa-info-circle alert-icon"></i>
+                <strong>No LEED insights available.</strong> Please ensure all project data has been properly uploaded and analyzed.
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample data - replace with your actual data
+        const forecastData = {{ project.leed_combined_forecasting|safe }};
+
+        const metrics = {{ project.leed_graph_metrics|safe }};
+
+        function downloadScorecard() {
+            // Add download functionality here
+            alert('Downloading LEED Scorecard...');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add loading animation
+            setTimeout(() => {
+                document.querySelectorAll('.loading-spinner').forEach(spinner => {
+                    spinner.style.display = 'none';
+                });
+                initializeCharts();
+            }, 1000);
+        });
+
+        function initializeCharts() {
+            // Line chart for trends
+            const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+            new Chart(forecastCtx, {
+                type: 'line',
+                data: {
+                    labels: forecastData.carbon_emission_trend.map(d => d.year),
+                    datasets: [
+                        {
+                            label: 'Carbon Emissions (kg CO₂)',
+                            data: forecastData.carbon_emission_trend.map(d => d.emission),
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#28a745',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Waste (kg)',
+                            data: forecastData.waste_trend.map(d => d.waste),
+                            borderColor: '#dc3545',
+                            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#dc3545',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6
+                        },
+                        {
+                            label: 'Energy Efficiency (%)',
+                            data: forecastData.energy_efficiency_trend.map(d => d.score),
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#007bff',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            borderWidth: 3
+                        }
+                    }
+                }
+            });
+
+            // Bar chart for metrics
+            const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+            new Chart(metricsCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Energy Efficiency', 'Waste Reduction', 'Carbon Savings', 'LEED Score'],
+                    datasets: [{
+                        data: [
+                            metrics.energy_efficiency_score,
+                            85, // Waste reduction percentage
+                            75, // Carbon savings percentage
+                            metrics.sustainability_recommendation_score
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#20c997',
+                            '#007bff',
+                            '#ffc107'
+                        ],
+                        borderColor: '#fff',
+                        borderWidth: 3,
+                        hoverBorderWidth: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + '%';
+                                }
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add intersection observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
 {% endblock %}
