@@ -693,6 +693,8 @@ def download_well_scorecard(request, project_id):
 
     # Write data
     for concept, data in well_scorecard.items():
+        if not isinstance(data, dict):
+            continue
         # Handle Preconditions
         if "Preconditions" in data:
             for item in data["Preconditions"]:
