@@ -1,189 +1,684 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    :root {
+        --primary-green: #2E7D4F;
+        --light-green: #E8F5E8;
+        --accent-blue: #2196F3;
+        --warning-amber: #FF9800;
+        --error-red: #F44336;
+        --text-dark: #2C3E50;
+        --bg-light: #F8F9FA;
+        --shadow-soft: 0 8px 32px rgba(0,0,0,0.1);
+        --shadow-hover: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--primary-green) 0%, #1e5f42 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 30px 30px;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="80" r="1" fill="white" opacity="0.1"/><circle cx="40" cy="60" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .project-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .download-btn {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 50px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-hover);
+        color: white;
+        text-decoration: none;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-soft);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-hover);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .insight-section {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--shadow-soft);
+        border-left: 5px solid var(--primary-green);
+    }
+
+    .insight-card {
+        background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+        border: 1px solid #e9ecef;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .insight-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .insight-header {
+        background: linear-gradient(135deg, var(--primary-green) 0%, #1e5f42 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .insight-body {
+        padding: 1.5rem;
+    }
+
+    .score-badge {
+        background: linear-gradient(45deg, #4CAF50, #45a049);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .reasons-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .reasons-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+        position: relative;
+        padding-left: 25px;
+    }
+
+    .reasons-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--primary-green);
+        font-weight: bold;
+    }
+
+    .reasons-list li:last-child {
+        border-bottom: none;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .chart-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 400px;
+        margin: 1rem 0;
+    }
+
+    .tabs-container {
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs .nav-link {
+        border: none;
+        border-radius: 50px;
+        margin-right: 10px;
+        padding: 12px 24px;
+        font-weight: 600;
+        color: #6c757d;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(45deg, var(--primary-green), #1e5f42);
+        color: white;
+        box-shadow: var(--shadow-soft);
+    }
+
+    .alert-custom {
+        border-radius: 16px;
+        border: none;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        border-left: 5px solid var(--warning-amber);
+    }
+
+    @media (max-width: 768px) {
+        .project-title {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-wrapper {
+            height: 300px;
+        }
+    }
+        .back-button {
+        background: white;
+        color: var(--secondary-color);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-button:hover {
+        background: var(--background-light);
+        color: #475569;
+        transform: translateX(-2px);
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content text-center">
+            <h1 class="project-title">
+                <i class="fas fa-leaf me-3"></i>
+                WELL Certification Analysis
+            </h1>
+            <p class="lead mb-4">Project: {{ project.name }}</p>
+            <a href="/download-well-scorecard/{{ project.id }}" class="download-btn">
+                <i class="fas fa-download"></i>
+                Download Updated Scorecard
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="container mt-4">
-  <h2>WELL Certification Analysis for Project: {{ project.name }}</h2>
-    <button onclick="window.location.href='/download-well-scorecard/{{ project.id }}'">
-    Download Updated Scorecard
-  </button>
-  <hr>
+    <!-- Quick Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(45deg, #4CAF50, #45a049); color: white;">
+                <i class="fas fa-certificate"></i>
+            </div>
+            <div class="stat-value text-success">{{ project.well_certification|default:"Not specified" }}</div>
+            <div class="stat-label">WELL Certification</div>
+        </div>
 
-  <div class="mb-3">
-    <h4>WELL Certification:</h4>
-    <p>{{ project.well_certification|default:"Not specified" }}</p>
-  </div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(45deg, #2196F3, #1976D2); color: white;">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <div class="stat-value text-primary" id="carbonEmissionStat">Loading...</div>
+            <div class="stat-label">Carbon Emissions (kg CO₂)</div>
+        </div>
 
-  <!-- WELL Insight Structured Display -->
-  {% if project.well_certification_insight %}
-    {{ project.well_certification_insight|json_script:"wellInsight" }}
-    <div id="wellInsightStructured" class="my-4"></div>
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(45deg, #FF9800, #F57C00); color: white;">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="stat-value text-warning" id="energyEfficiencyStat">Loading...</div>
+            <div class="stat-label">Energy Efficiency</div>
+        </div>
 
-    <script>
-      const wellInsight = JSON.parse(document.getElementById('wellInsight').textContent);
-      const container = document.getElementById('wellInsightStructured');
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(45deg, #9C27B0, #7B1FA2); color: white;">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-value text-info" id="wellScoreStat">Loading...</div>
+            <div class="stat-label">WELL Score</div>
+        </div>
+    </div>
 
-      function createInsightSection(title, data) {
+    <!-- WELL Insights Section -->
+    {% if project.well_certification_insight %}
+        {{ project.well_certification_insight|json_script:"wellInsight" }}
+        <div class="insight-section">
+            <h3 class="mb-4">
+                <i class="fas fa-lightbulb text-warning me-2"></i>
+                WELL Building Insights
+            </h3>
+            <div id="wellInsightStructured"></div>
+        </div>
+    {% else %}
+        <div class="insight-section">
+            <div class="alert alert-custom">
+                <i class="fas fa-info-circle me-2"></i>
+                No WELL insights available for this project.
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Charts Section with Tabs -->
+    <div class="tabs-container">
+        <ul class="nav nav-tabs" id="chartTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="forecast-tab" data-bs-toggle="tab" data-bs-target="#forecast-panel" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>Trend Forecast
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="metrics-tab" data-bs-toggle="tab" data-bs-target="#metrics-panel" type="button" role="tab">
+                    <i class="fas fa-chart-bar me-2"></i>Current Metrics
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content" id="chartTabContent">
+        <!-- Forecast Chart -->
+        <div class="tab-pane fade show active" id="forecast-panel" role="tabpanel">
+            <div class="chart-container">
+                <h4 class="chart-title">
+                    <i class="fas fa-chart-line text-primary"></i>
+                    Sustainability Trends Forecast
+                </h4>
+                <div class="chart-wrapper">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Chart -->
+        <div class="tab-pane fade" id="metrics-panel" role="tabpanel">
+            <div class="chart-container">
+                <h4 class="chart-title">
+                    <i class="fas fa-chart-bar text-success"></i>
+                    Current Performance Metrics
+                </h4>
+                <div class="chart-wrapper">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for JavaScript -->
+{{ project.well_combined_forecasting|json_script:"forecast-data" }}
+{{ project.well_graph_metrics|json_script:"metrics-data" }}
+
+<!-- Back Button -->
+<div class="mb-4">
+    <a href="{% url 'project_step' project.id project.current_step %}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Project
+    </a>
+</div>
+
+<script>
+    // Get data from Django template
+    const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
+    const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
+
+    // Update stats cards with real data
+    document.getElementById('carbonEmissionStat').textContent = metrics.total_carbon_emission.toLocaleString();
+    document.getElementById('energyEfficiencyStat').textContent = metrics.energy_efficiency_score + '%';
+    document.getElementById('wellScoreStat').textContent = metrics.sustainability_recommendation_score;
+
+    // Create WELL Insight sections
+    {% if project.well_certification_insight %}
+    const wellInsight = JSON.parse(document.getElementById('wellInsight').textContent);
+    const container = document.getElementById('wellInsightStructured');
+
+    function createInsightSection(title, data, iconClass = 'fas fa-chart-line') {
         const section = document.createElement('div');
-        section.classList.add('card', 'mb-3', 'shadow-sm');
+        section.classList.add('insight-card');
 
         const header = document.createElement('div');
-        header.classList.add('card-header', 'bg-success', 'text-white');
-        header.innerHTML = `<h5 class="mb-0">${title}</h5>`;
+        header.classList.add('insight-header');
+        header.innerHTML = `<i class="${iconClass}"></i><h5 class="mb-0">${title}</h5>`;
         section.appendChild(header);
 
         const body = document.createElement('div');
-        body.classList.add('card-body', 'bg-light');
+        body.classList.add('insight-body');
 
-        const score = document.createElement('h6');
-        score.innerHTML = `<strong>Score:</strong> ${data.score}`;
+        const score = document.createElement('div');
+        score.classList.add('score-badge');
+        score.innerHTML = `Score: ${data.score}`;
         body.appendChild(score);
 
         const reasonsList = document.createElement('ul');
+        reasonsList.classList.add('reasons-list');
         data.reasons.forEach(reason => {
-          const li = document.createElement('li');
-          li.textContent = reason;
-          reasonsList.appendChild(li);
+            const li = document.createElement('li');
+            li.textContent = reason;
+            reasonsList.appendChild(li);
         });
 
         body.appendChild(reasonsList);
         section.appendChild(body);
         return section;
-      }
-
-      if (wellInsight.current_scenario) {
-        container.appendChild(createInsightSection('Current Scenario', wellInsight.current_scenario));
-      }
-      if (wellInsight.suggestion) {
-        container.appendChild(createInsightSection('Suggestion', wellInsight.suggestion));
-      }
-    </script>
-  {% else %}
-    <div class="alert alert-warning">No WELL insights available.</div>
-  {% endif %}
-
-  <!-- Charts -->
-  {{ project.well_combined_forecasting|json_script:"forecast-data" }}
-  {{ project.well_graph_metrics|json_script:"metrics-data" }}
-
-  <canvas id="forecastChart" height="200"></canvas>
-  <canvas id="metricsChart" height="200" class="mt-4"></canvas>
-</div>
-
-<script>
-  const forecastData = JSON.parse(document.getElementById('forecast-data').textContent);
-  const metrics = JSON.parse(document.getElementById('metrics-data').textContent);
-
-  const forecastCtx = document.getElementById('forecastChart').getContext('2d');
-  new Chart(forecastCtx, {
-    type: 'line',
-    data: {
-      labels: forecastData.carbon_emission_trend.map(d => d.year),
-      datasets: [
-        {
-          label: 'Carbon Emissions (kg CO₂)',
-          data: forecastData.carbon_emission_trend.map(d => d.emission),
-          borderColor: '#36A2EB',
-          backgroundColor: 'rgba(54,162,235,0.2)',
-          fill: true,
-          tension: 0.3
-        },
-        {
-          label: 'Waste (kg)',
-          data: forecastData.waste_trend.map(d => d.waste),
-          borderColor: '#FF6384',
-          backgroundColor: 'rgba(255,99,132,0.2)',
-          fill: true,
-          tension: 0.3
-        },
-        {
-          label: 'Energy Efficiency (%)',
-          data: forecastData.energy_efficiency_trend.map(d => d.score),
-          borderColor: '#4BC0C0',
-          backgroundColor: 'rgba(75,192,192,0.2)',
-          fill: true,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        y: { beginAtZero: true }
-      }
     }
-  });
 
-  const metricsCtx = document.getElementById('metricsChart').getContext('2d');
-  const cappedData = metrics.total_carbon_emission;
-  const cappedWaste = metrics.predicted_waste_kg;
-  const cappedEnergy = metrics.energy_efficiency_score;
+    if (wellInsight.current_scenario) {
+        container.appendChild(createInsightSection('Current Scenario Analysis', wellInsight.current_scenario, 'fas fa-chart-line'));
+    }
+    if (wellInsight.suggestion) {
+        const suggestionCard = createInsightSection('Improvement Suggestions', wellInsight.suggestion, 'fas fa-lightbulb');
+        // Make suggestion badge orange
+        const badge = suggestionCard.querySelector('.score-badge');
+        badge.style.background = 'linear-gradient(45deg, #FF9800, #F57C00)';
+        container.appendChild(suggestionCard);
+    }
+    {% endif %}
 
-  new Chart(metricsCtx, {
-    type: 'bar',
-    data: {
-      labels: [
-        'Total Carbon Emission',
-        'Predicted Waste (kg)',
-        'Energy Efficiency (%)',
-        'WELL Score'
-      ],
-      datasets: [
-        {
-          label: 'Main Metrics',
-          data: [cappedData, cappedWaste, cappedEnergy, null],
-          backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0', null],
-          xAxisID: 'xMain'
-        },
-        {
-          label: 'WELL Score',
-          data: [null, null, null, metrics.sustainability_recommendation_score],
-          backgroundColor: [null, null, null, '#FFCE56'],
-          xAxisID: 'xSecondary'
-        }
-      ]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      scales: {
-        xMain: {
-          type: 'linear',
-          position: 'top',
-          beginAtZero: true,
-          max: 1000,
-          title: { display: true, text: 'Main Metrics Scale' }
-        },
-        xSecondary: {
-          type: 'linear',
-          position: 'bottom',
-          beginAtZero: true,
-          min: 0,
-          max: 110,
-          grid: { drawOnChartArea: false },
-          title: { display: true, text: 'WELL Score' }
-        }
-      },
-      plugins: {
-        legend: { display: true },
-        tooltip: {
-          enabled: true,
-          callbacks: {
-            label: function(context) {
-              const label = context.dataset.label || '';
-              if (label === 'WELL Score') {
-                return `WELL Score: ${context.raw} (Grade: ${metrics.sustainability_recommendation_grade})`;
-              }
-              const originalValues = {
-                'Total Carbon Emission': metrics.total_carbon_emission,
-                'Predicted Waste (kg)': metrics.predicted_waste_kg,
-                'Energy Efficiency (%)': metrics.energy_efficiency_score
-              };
-              return `${label}: ${originalValues[label] || context.raw}`;
+    // Initialize Charts
+    function initializeCharts() {
+        // Forecast Chart
+        const forecastCtx = document.getElementById('forecastChart').getContext('2d');
+        new Chart(forecastCtx, {
+            type: 'line',
+            data: {
+                labels: forecastData.carbon_emission_trend.map(d => d.year),
+                datasets: [
+                    {
+                        label: 'Carbon Emissions (kg CO₂)',
+                        data: forecastData.carbon_emission_trend.map(d => d.emission),
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54,162,235,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#36A2EB',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Waste (kg)',
+                        data: forecastData.waste_trend.map(d => d.waste),
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255,99,132,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#FF6384',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Energy Efficiency (%)',
+                        data: forecastData.energy_efficiency_trend.map(d => d.score),
+                        borderColor: '#4BC0C0',
+                        backgroundColor: 'rgba(75,192,192,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#4BC0C0',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 12,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
             }
-          }
-        }
-      }
+        });
+
+        // Metrics Chart (Pie Chart)
+        const metricsCtx = document.getElementById('metricsChart').getContext('2d');
+
+        // Normalize values for pie chart (convert to percentages of total)
+        const totalCarbon = metrics.total_carbon_emission;
+        const totalWaste = metrics.predicted_waste_kg;
+        const energyEfficiency = metrics.energy_efficiency_score;
+        const wellScore = metrics.sustainability_recommendation_score;
+
+        // Create relative values for pie chart visualization
+        const total = totalCarbon + totalWaste + energyEfficiency + wellScore;
+        const carbonPercent = (totalCarbon / total * 100).toFixed(1);
+        const wastePercent = (totalWaste / total * 100).toFixed(1);
+        const energyPercent = (energyEfficiency / total * 100).toFixed(1);
+        const wellPercent = (wellScore / total * 100).toFixed(1);
+
+        new Chart(metricsCtx, {
+            type: 'pie',
+            data: {
+                labels: [
+                    'Carbon Emissions',
+                    'Waste Generation',
+                    'Energy Efficiency',
+                    'WELL Score'
+                ],
+                datasets: [{
+                    data: [totalCarbon, totalWaste, energyEfficiency, wellScore],
+                    backgroundColor: [
+                        '#FF6B6B', // Red for Carbon Emissions
+                        '#4ECDC4', // Teal for Waste
+                        '#45B7D1', // Blue for Energy
+                        '#96CEB4'  // Green for WELL Score
+                    ],
+                    borderColor: [
+                        '#FF5252',
+                        '#26A69A',
+                        '#2196F3',
+                        '#66BB6A'
+                    ],
+                    borderWidth: 3,
+                    hoverOffset: 15,
+                    hoverBorderWidth: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: {
+                                size: 14,
+                                weight: '600'
+                            },
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                return data.labels.map((label, i) => {
+                                    const value = data.datasets[0].data[i];
+                                    const percent = ((value / data.datasets[0].data.reduce((a, b) => a + b, 0)) * 100).toFixed(1);
+                                    return {
+                                        text: `${label}: ${value} (${percent}%)`,
+                                        fillStyle: data.datasets[0].backgroundColor[i],
+                                        strokeStyle: data.datasets[0].borderColor[i],
+                                        pointStyle: 'circle'
+                                    };
+                                });
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.9)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        borderColor: 'rgba(255,255,255,0.2)',
+                        borderWidth: 1,
+                        cornerRadius: 12,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label;
+                                const value = context.raw;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+
+                                let unit = '';
+                                let grade = '';
+
+                                switch(label) {
+                                    case 'Carbon Emissions':
+                                        unit = ' kg CO₂';
+                                        break;
+                                    case 'Waste Generation':
+                                        unit = ' kg';
+                                        break;
+                                    case 'Energy Efficiency':
+                                        unit = '%';
+                                        break;
+                                    case 'WELL Score':
+                                        unit = ' points';
+                                        grade = ` (Grade: ${metrics.sustainability_recommendation_grade})`;
+                                        break;
+                                }
+
+                                return `${label}: ${value}${unit} (${percentage}%)${grade}`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1500,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
     }
-  });
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+    });
+
+    // Handle tab switching for chart resize
+    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function() {
+            setTimeout(() => {
+                Chart.helpers.each(Chart.instances, function(instance) {
+                    instance.resize();
+                });
+            }, 100);
+        });
+    });
 </script>
 {% endblock %}
