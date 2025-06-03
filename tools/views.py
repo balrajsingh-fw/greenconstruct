@@ -1163,7 +1163,10 @@ def leed_analysis(request, project_id):
     leed_insight = project.leed_certification_insight
     if not leed_insight:
         generate_leed_certification_insight(project)
-    return render(request, 'projects/leed_analysis.html', {'project': project})
+
+    total_emission = sum(item["emission"] for item in project.carbon_data)
+    return render(request, 'projects/leed_analysis.html',
+                  {'project': project, 'total_emission': total_emission})
 
 
 def well_analysis(request, project_id):
