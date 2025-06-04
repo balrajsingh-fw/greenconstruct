@@ -24,8 +24,77 @@
       </select>
     </div>
 
-    <!-- Placeholder for category-specific content -->
-    <div id="category-content" class="mt-4">
-      <p class="text-muted">Please select a category to load its details.</p>
+    <!-- Category-specific content blocks -->
+    <div id="leed-category-blocks">
+      <div class="category-block" id="category-IP" style="display: none;">
+        <h6>Integrative Process (IP)</h6>
+        <p>Details about the integrative design process used in the project.</p>
+      </div>
+
+      <div class="category-block" id="category-LT" style="display: none;">
+        <h6>Location and Transport (LT)</h6>
+        <p>Information related to site accessibility, alternative transportation, etc.</p>
+      </div>
+
+      <div class="category-block" id="category-SS" style="display: none;">
+        <h6>Sustainable Sites (SS)</h6>
+        <p>Site management, stormwater control, and outdoor environment.</p>
+      </div>
+
+      <div class="category-block" id="category-WE" style="display: none;">
+        <h6>Water Efficiency (WE)</h6>
+        <p>Strategies for indoor/outdoor water use reduction.</p>
+      </div>
+
+      <div class="category-block" id="category-EA" style="display: none;">
+        <h6>Energy and Atmosphere (EA)</h6>
+        <p>Energy performance, renewable systems, and commissioning.</p>
+      </div>
+
+      <div class="category-block" id="category-MR" style="display: none;">
+        <h6>Materials and Resources (MR)</h6>
+        <p>Use of environmentally preferred materials and waste diversion.</p>
+      </div>
+
+      <div class="category-block" id="category-EQ" style="display: none;">
+        <h6>Indoor Environmental Quality (EQ)</h6>
+        <p>Ventilation, lighting, and occupant comfort metrics.</p>
+      </div>
+
+      <div class="category-block" id="category-IN" style="display: none;">
+        <h6>Innovation (IN)</h6>
+        <p>Creative strategies that go beyond the standard LEED credits.</p>
+      </div>
+
+      <div class="category-block" id="category-RP" style="display: none;">
+        <h6>Regional Priority (RP)</h6>
+        <p>Extra credits awarded based on local environmental priorities.</p>
+      </div>
+
+      <div class="category-block" id="category-ER" style="display: none;">
+        <h6>Equity and Resilience (ER)</h6>
+        <p>Inclusion of equity-focused practices and climate resilience planning.</p>
+      </div>
+
+      <div class="category-block" id="category-Admin" style="display: none;">
+        <h6>General Inspection / Admin</h6>
+        <p>Documentation, progress tracking, and general administration.</p>
+      </div>
     </div>
   </div>
+
+<!-- JavaScript for toggling blocks -->
+<script>
+  document.getElementById("leed-category-select").addEventListener("change", function () {
+    // Hide all category blocks
+    const blocks = document.querySelectorAll("#leed-category-blocks .category-block");
+    blocks.forEach(block => block.style.display = "none");
+
+    // Show the selected category block
+    const selected = this.value;
+    const selectedBlock = document.getElementById(`category-${selected}`);
+    if (selectedBlock) {
+      selectedBlock.style.display = "block";
+    }
+  });
+</script>
