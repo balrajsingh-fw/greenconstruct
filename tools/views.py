@@ -1018,13 +1018,20 @@ def project_create(request):
                 well_certification=well_certification,
                 current_step=2  # Step 1 done, move to step 2
             )
-            return redirect('project_step', project_id=project.id, step=1)
+            return redirect('project_detail', project_id=project.id)
     else:
         formset = MaterialFormSet()
 
     return render(request, 'projects/create.html',
                   {'formset': formset,
                    "building_types": building_types})
+
+
+def project_detail(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    return render(request, 'projects/detail.html',
+                  {'project': project
+                   })
 
 
 # List all projects

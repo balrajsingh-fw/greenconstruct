@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid px-4 py-5" style="background-color: white; min-height: 100vh;">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      <!-- Header Section -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold mb-0">Project Details</h1>
+        <!-- Custom Toggle Switch -->
+        <div class="d-flex align-items-center">
+          <span class="me-2 fw-semibold">LEED</span>
+          <label class="switch">
+            <input type="checkbox" id="certToggle" onchange="toggleCertificationView()">
+            <span class="slider round"></span>
+          </label>
+          <span class="ms-2 fw-semibold">WELL</span>
+        </div>
+      </div>
+
+      <!-- Project Info Card -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3>{{ project.name }}</h3>
+          <p><strong>Building Type:</strong> {{ project.building_type }}</p>
+          <p><strong>Location:</strong> {{ project.city }}, {{ project.country }}</p>
+          <p><strong>Coordinates:</strong> {{ project.latitude }}, {{ project.longitude }}</p>
+          <p><strong>LEED Certification:</strong> {{ project.leed_certification }}</p>
+          <p><strong>WELL Certification:</strong> {{ project.well_certification }}</p>
+        </div>
+      </div>
+
+      <!-- LEED Section -->
+      <div id="leed-view" class="card mb-4">
+        {% include 'projects/leed_specs.html' with project=project %}
+      </div>
+
+      <!-- WELL Section -->
+      <div id="well-view" class="card mb-4 d-none">
+        {% include 'projects/well_specs.html' with project=project %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toggle Switch Styles -->
+<style>
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px; width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+</style>
+
+<!-- Toggle Script -->
+<script>
+function toggleCertificationView() {
+  const isChecked = document.getElementById('certToggle').checked;
+  const leedSection = document.getElementById('leed-view');
+  const wellSection = document.getElementById('well-view');
+
+  if (isChecked) {
+    leedSection.classList.add('d-none');
+    wellSection.classList.remove('d-none');
+  } else {
+    leedSection.classList.remove('d-none');
+    wellSection.classList.add('d-none');
+  }
+}
+</script>
+{% endblock %}
