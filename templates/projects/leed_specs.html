@@ -26,59 +26,48 @@
 
     <!-- Category-specific content blocks -->
     <div id="leed-category-blocks">
-      <div class="category-block" id="category-IP" style="display: none;">
-        <h6>Integrative Process (IP)</h6>
-        <p>Details about the integrative design process used in the project.</p>
-      </div>
+        <div class="category-block" id="category-IP" style="display: none;">
+         {% include 'projects/leed_category/category_ip.html' %}
+        </div>
 
-      <div class="category-block" id="category-LT" style="display: none;">
-        <h6>Location and Transport (LT)</h6>
-        <p>Information related to site accessibility, alternative transportation, etc.</p>
-      </div>
+        <div class="category-block" id="category-LT" style="display: none;">
+        {% include 'projects/leed_category/category_lt.html' %}
+        </div>
 
       <div class="category-block" id="category-SS" style="display: none;">
-        <h6>Sustainable Sites (SS)</h6>
-        <p>Site management, stormwater control, and outdoor environment.</p>
+        {% include 'projects/leed_category/category_ss.html' %}
       </div>
 
       <div class="category-block" id="category-WE" style="display: none;">
-        <h6>Water Efficiency (WE)</h6>
-        <p>Strategies for indoor/outdoor water use reduction.</p>
+        {% include 'projects/leed_category/category_we.html' %}
       </div>
 
       <div class="category-block" id="category-EA" style="display: none;">
-        <h6>Energy and Atmosphere (EA)</h6>
-        <p>Energy performance, renewable systems, and commissioning.</p>
+        {% include 'projects/leed_category/category_ea.html' %}
       </div>
 
       <div class="category-block" id="category-MR" style="display: none;">
-        <h6>Materials and Resources (MR)</h6>
-        <p>Use of environmentally preferred materials and waste diversion.</p>
+        {% include 'projects/leed_category/category_mr.html' %}
       </div>
 
       <div class="category-block" id="category-EQ" style="display: none;">
-        <h6>Indoor Environmental Quality (EQ)</h6>
-        <p>Ventilation, lighting, and occupant comfort metrics.</p>
+        {% include 'projects/leed_category/category_eq.html' %}
       </div>
 
       <div class="category-block" id="category-IN" style="display: none;">
-        <h6>Innovation (IN)</h6>
-        <p>Creative strategies that go beyond the standard LEED credits.</p>
+        {% include 'projects/leed_category/category_in.html' %}
       </div>
 
       <div class="category-block" id="category-RP" style="display: none;">
-        <h6>Regional Priority (RP)</h6>
-        <p>Extra credits awarded based on local environmental priorities.</p>
+        {% include 'projects/leed_category/category_rp.html' %}
       </div>
 
       <div class="category-block" id="category-ER" style="display: none;">
-        <h6>Equity and Resilience (ER)</h6>
-        <p>Inclusion of equity-focused practices and climate resilience planning.</p>
+        {% include 'projects/leed_category/category_er.html' %}
       </div>
 
       <div class="category-block" id="category-Admin" style="display: none;">
-        <h6>General Inspection / Admin</h6>
-        <p>Documentation, progress tracking, and general administration.</p>
+        {% include 'projects/leed_category/category_gi.html' %}
       </div>
     </div>
   </div>

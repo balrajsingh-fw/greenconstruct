@@ -1,5 +1,6 @@
 from django import forms
-from .models import Material
+from .models import Material, ProjectTeam
+
 
 class MaterialQuantityForm(forms.Form):
     material = forms.ModelChoiceField(queryset=Material.objects.all(), label="Material")
@@ -49,3 +50,12 @@ class DesignPlanningForm(forms.Form):
     sunlight = forms.FloatField(label='Desired Sunlight (hours/day)')
     airflow = forms.FloatField(label='Desired Airflow (cfm)')
     energy_budget = forms.FloatField(label='Energy Budget (kWh)')
+
+
+class ProjectTeamForm(forms.ModelForm):
+    class Meta:
+        model = ProjectTeam
+        fields = ['name', 'designation', 'contact']
+        widgets = {
+            'contact': forms.Textarea(attrs={'placeholder': 'Enter contacts as JSON list'}),
+        }

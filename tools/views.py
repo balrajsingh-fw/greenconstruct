@@ -1029,9 +1029,23 @@ def project_create(request):
 
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
+
+    if request.method == 'POST':
+        team_form = ProjectTeamForm(request.POST)
+        if team_form.is_valid():
+            team_member = team_form.save(commit=False)
+            team_member.project = project
+            team_member.save()
+            return redirect('project_detail', project_id=project.id)
+    else:
+        team_form = ProjectTeamForm()
+    context = {
+        'project': project,
+        'team_form': team_form,
+        # add other context as needed
+    }
     return render(request, 'projects/detail.html',
-                  {'project': project
-                   })
+                  context)
 
 
 # List all projects

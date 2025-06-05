@@ -1,0 +1,125 @@
+  <h6>Integrative Process (IP)</h6>
+  <p>Provide project team information:</p>
+
+  <form id="project-team-form">
+    <div id="team-members-container">
+      <!-- One member input block by default -->
+      <div class="team-member mb-4 border p-3 rounded">
+        <label><strong>Name:</strong></label>
+        <input type="text" name="name" class="form-control mb-2" placeholder="Enter name" required>
+
+        <label><strong>Designation/Role:</strong></label>
+        <input type="text" name="designation" class="form-control mb-2" placeholder="Enter designation or role" required>
+
+        <label><strong>Contact Type:</strong></label>
+        <select name="contact_type" class="form-select mb-2" required>
+          <option value="" disabled selected>Select type</option>
+          <option value="Email">Email</option>
+          <option value="Phone">Phone</option>
+          <option value="Address">Address</option>
+        </select>
+
+        <label><strong>Contact Value:</strong></label>
+        <input type="text" name="contact_value" class="form-control mb-2" placeholder="Enter contact info" required>
+      </div>
+    </div>
+
+    <button type="button" id="add-member-btn" class="btn btn-secondary mb-3">Add Member</button>
+    <button type="submit" class="btn btn-primary">Submit Team Detail</button>
+  </form>
+
+  <script>
+  const container = document.getElementById('team-members-container');
+  const addBtn = document.getElementById('add-member-btn');
+
+  // Function to create a new team member input block
+  function createTeamMemberBlock() {
+    const div = document.createElement('div');
+    div.className = 'team-member mb-4 border p-3 rounded';
+    div.innerHTML = `
+      <label><strong>Name:</strong></label>
+      <input type="text" name="name" class="form-control mb-2" placeholder="Enter name" required>
+
+      <label><strong>Designation/Role:</strong></label>
+      <input type="text" name="designation" class="form-control mb-2" placeholder="Enter designation or role" required>
+
+      <label><strong>Contact Type:</strong></label>
+      <select name="contact_type" class="form-select mb-2" required>
+        <option value="" disabled selected>Select type</option>
+        <option value="Email">Email</option>
+        <option value="Phone">Phone</option>
+        <option value="Address">Address</option>
+      </select>
+
+      <label><strong>Contact Value:</strong></label>
+      <input type="text" name="contact_value" class="form-control mb-2" placeholder="Enter contact info" required>
+
+      <button type="button" class="btn btn-danger btn-sm remove-member-btn">Remove Member</button>
+    `;
+    return div;
+  }
+
+  // Add new member block on button click
+  addBtn.addEventListener('click', () => {
+    const newMember = createTeamMemberBlock();
+    container.appendChild(newMember);
+
+    // Add remove event for the new member block
+    newMember.querySelector('.remove-member-btn').addEventListener('click', () => {
+      newMember.remove();
+    });
+  });
+
+  // Also add remove button event to first member block (if you want)
+  const firstRemoveBtn = document.querySelector('.remove-member-btn');
+  if (firstRemoveBtn) {
+    firstRemoveBtn.addEventListener('click', (e) => {
+      e.target.closest('.team-member').remove();
+    });
+  }
+
+  // Form submission
+  document.getElementById('project-team-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const members = [];
+    const teamMemberDivs = container.querySelectorAll('.team-member');
+
+    for (const div of teamMemberDivs) {
+      const name = div.querySelector('input[name="name"]').value.trim();
+      const designation = div.querySelector('input[name="designation"]').value.trim();
+      const contactType = div.querySelector('select[name="contact_type"]').value;
+      const contactValue = div.querySelector('input[name="contact_value"]').value.trim();
+
+      if(!name || !designation || !contactType || !contactValue) {
+        alert('Please fill all fields for every team member.');
+        return;
+      }
+
+      members.push({
+        name,
+        designation,
+        contact: [
+          { type: contactType, value: contactValue }
+        ]
+      });
+    }
+
+    // Here you would typically send `members` JSON data via AJAX or set a hidden input and submit normally
+    // For demo, just alert the JSON:
+    alert('Submitting team members:\n' + JSON.stringify(members, null, 2));
+
+    // TODO: send `members` data to backend via fetch/ajax or form submission
+
+    // Reset form after submission if needed:
+    // this.reset();
+    // Or remove extra members, keep only one blank block:
+    while(container.children.length > 1) {
+      container.lastChild.remove();
+    }
+    container.querySelector('input[name="name"]').value = '';
+    container.querySelector('input[name="designation"]').value = '';
+    container.querySelector('select[name="contact_type"]').value = '';
+    container.querySelector('input[name="contact_value"]').value = '';
+  });
+</script>

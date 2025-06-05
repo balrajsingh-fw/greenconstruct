@@ -64,3 +64,13 @@ class Document(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to='documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+
+class ProjectTeam(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='team_members')
+    name = models.CharField(max_length=255)
+    designation = models.CharField(max_length=255)
+    contact = models.JSONField()  # Django 3.1+ supports JSONField natively
+
+    def __str__(self):
+        return f"{self.name} ({self.designation})"
