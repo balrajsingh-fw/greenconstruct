@@ -165,13 +165,49 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+
+                  <!-- Conditionally display dropdown based on URL -->
+                  <div id="leed-dropdown" class="ms-3 d-none">
+                    <select id="leed-category-select" class="form-select form-select-sm">
+                      <option value="" disabled selected>-- Select Category --</option>
+                      <option value="IP">Integrative Process (IP)</option>
+                      <option value="LT">Location and Transport (LT)</option>
+                      <option value="SS">Sustainable Sites (SS)</option>
+                      <option value="WE">Water Efficiency (WE)</option>
+                      <option value="EA">Energy and Atmosphere (EA)</option>
+                      <option value="MR">Materials and Resources (MR)</option>
+                      <option value="EQ">Indoor Environmental Quality (EQ)</option>
+                      <option value="IN">Innovation (IN)</option>
+                      <option value="RP">Regional Priority (RP)</option>
+                      <option value="ER">Equity and Resilience (ER)</option>
+                      <option value="Admin">General Inspection/ Admin</option>
+                    </select>
+                  </div>
+
+                  <div id="well-dropdown" class="ms-3 d-none">
+                    <select id="well-category-select" class="form-select form-select-sm">
+                      <option value="" disabled selected>-- Select Category --</option>
+                      <option value="Air">Air</option>
+                      <option value="Water">Water</option>
+                      <option value="Nourishment">Nourishment</option>
+                      <option value="Light">Light</option>
+                      <option value="Movement">Movement</option>
+                      <option value="ThermalComfort">Thermal Comfort</option>
+                      <option value="Sound">Sound</option>
+                      <option value="Materials">Materials</option>
+                      <option value="Mind">Mind</option>
+                      <option value="Community">Community</option>
+                      <option value="Admin">General Inspection/ Admin</option>
+                    </select>
+                  </div>
+                                <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="/"><i class="bi bi-house-fill me-2"></i>Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/projects"><i class="bi bi-building me-2"></i>Projects</a>
                     </li>
+
                 </ul>
             </div>
         </div>
@@ -268,6 +304,37 @@
         function hideLoading() {
             document.querySelector('.loading-spinner').style.display = 'none';
         }
+
+<!--        Function for leed and well documentation part-->
+  const currentUrl = window.location.href;
+
+  if (currentUrl.includes('leed_documentation')) {
+    document.getElementById('leed-dropdown').classList.remove('d-none');
+
+    const leedSelect = document.getElementById("leed-category-select");
+    leedSelect.addEventListener("change", function () {
+      const blocks = document.querySelectorAll("#leed-category-blocks .category-block");
+      blocks.forEach(block => block.style.display = "none");
+
+      const selected = this.value;
+      const selectedBlock = document.getElementById(`category-${selected}`);
+      if (selectedBlock) selectedBlock.style.display = "block";
+    });
+  }
+
+  if (currentUrl.includes('well_documentation')) {
+    document.getElementById('well-dropdown').classList.remove('d-none');
+
+    const wellSelect = document.getElementById("well-category-select");
+    wellSelect.addEventListener("change", function () {
+      const blocks = document.querySelectorAll("#well-category-blocks .category-block");
+      blocks.forEach(block => block.style.display = "none");
+
+      const selected = this.value;
+      const selectedBlock = document.getElementById(`well-${selected.replace(/\s/g, '')}`);
+      if (selectedBlock) selectedBlock.style.display = "block";
+    });
+  }
     </script>
 
     {% block extra_js %}{% endblock %}

@@ -1,28 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
 <!-- LEED Section -->
   <div class="card-header bg-light">
     <h5 class="mb-0">LEED Certification Overview</h5>
   </div>
   <div class="card-body">
-    <p>Select a LEED category to view or upload related information:</p>
-
-    <!-- Category Dropdown -->
-    <div class="mb-3">
-      <label for="leed-category-select" class="form-label"><strong>Choose Category:</strong></label>
-      <select id="leed-category-select" class="form-select">
-        <option value="" disabled selected>-- Select Category --</option>
-        <option value="IP">Integrative Process (IP)</option>
-        <option value="LT">Location and Transport (LT)</option>
-        <option value="SS">Sustainable Sites (SS)</option>
-        <option value="WE">Water Efficiency (WE)</option>
-        <option value="EA">Energy and Atmosphere (EA)</option>
-        <option value="MR">Materials and Resources (MR)</option>
-        <option value="EQ">Indoor Environmental Quality (EQ)</option>
-        <option value="IN">Innovation (IN)</option>
-        <option value="RP">Regional Priority (RP)</option>
-        <option value="ER">Equity and Resilience (ER)</option>
-        <option value="Admin">General Inspection/ Admin</option>
-      </select>
-    </div>
 
     <!-- Category-specific content blocks -->
     <div id="leed-category-blocks">
@@ -87,3 +69,5 @@
     }
   });
 </script>
+{% endblock %}
+

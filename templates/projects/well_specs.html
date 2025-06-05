@@ -1,28 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
 <!-- WELL Section -->
   <div class="card-header bg-light">
     <h5 class="mb-0">WELL Certification Overview</h5>
   </div>
   <div class="card-body">
     <p>Select a WELL category to view or upload related information:</p>
-
-    <!-- WELL Category Dropdown -->
-    <div class="mb-3">
-      <label for="well-category-select" class="form-label"><strong>Choose Category:</strong></label>
-      <select id="well-category-select" class="form-select">
-        <option value="" disabled selected>-- Select Category --</option>
-        <option value="Air">Air</option>
-        <option value="Water">Water</option>
-        <option value="Nourishment">Nourishment</option>
-        <option value="Light">Light</option>
-        <option value="Movement">Movement</option>
-        <option value="ThermalComfort">Thermal Comfort</option>
-        <option value="Sound">Sound</option>
-        <option value="Materials">Materials</option>
-        <option value="Mind">Mind</option>
-        <option value="Community">Community</option>
-        <option value="Admin">General Inspection/ Admin</option>
-      </select>
-    </div>
 
     <!-- WELL category-specific content blocks -->
     <div id="well-category-blocks">
@@ -87,3 +70,4 @@
     }
   });
 </script>
+{% endblock %}

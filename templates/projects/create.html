@@ -54,6 +54,33 @@
                          placeholder="Enter project name..." required />
                 </div>
 
+                <!-- Start Time -->
+                <div class="col-md-6">
+                  <label for="start_time" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-project-diagram text-primary me-2"></i>Project Start Date Time
+                  </label>
+                  <input type="datetime-local" id="start_time" name="start_time" class="form-control form-control-lg border-2 rounded-3"
+                         required />
+                </div>
+
+                <!-- End Time -->
+                <div class="col-md-6">
+                  <label for="end_time" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-project-diagram text-primary me-2"></i>Project Completion Date Time
+                  </label>
+                  <input type="datetime-local" id="end_time" name="end_time" class="form-control form-control-lg border-2 rounded-3"
+                         required />
+                </div>
+
+                <!-- Budget -->
+                <div class="col-md-6">
+                  <label for="budget" class="form-label fw-semibold text-dark mb-2">
+                    <i class="fas fa-project-diagram text-primary me-2"></i>Project Budget
+                  </label>
+                  <input type="number" step="0.01" min="0" id="budget" name="budget" class="form-control form-control-lg border-2 rounded-3"
+                         placeholder="Enter budget ($)..." required />
+                </div>
+
                 <!-- LEED Certification -->
                 <div class="col-md-6">
                   <label for="leed_certification" class="form-label fw-semibold text-dark mb-2">

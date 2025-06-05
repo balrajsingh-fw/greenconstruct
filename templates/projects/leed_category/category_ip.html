@@ -1,125 +1,324 @@
-  <h6>Integrative Process (IP)</h6>
-  <p>Provide project team information:</p>
+<h6>Integrative Process (IP)</h6>
+<p>Provide project team information:</p>
 
-  <form id="project-team-form">
-    <div id="team-members-container">
-      <!-- One member input block by default -->
-      <div class="team-member mb-4 border p-3 rounded">
-        <label><strong>Name:</strong></label>
-        <input type="text" name="name" class="form-control mb-2" placeholder="Enter name" required>
+<h5 class="mb-3">Current Team Members</h5>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>id</th>
+        <th>Name</th>
+        <th>Designation</th>
+        <th>Contact</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="team-members-list">
+      {% for member in project_team %}
+      <tr data-id="{{ member.id }}">
+        <td>{{ member.id }}</td>
+        <td>{{ member.name }}</td>
+        <td>{{ member.designation }}</td>
+        <td>{{ member.contact }}</td>
+        <td>
+          <button class="btn btn-danger btn-sm remove-member-btn">Remove</button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5" class="text-center">No team members added yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
-        <label><strong>Designation/Role:</strong></label>
-        <input type="text" name="designation" class="form-control mb-2" placeholder="Enter designation or role" required>
+<!-- Add Member Button -->
+<div class="d-flex justify-content-start">
+  <button class="btn btn-outline-primary" id="show-add-member-form">
+    <i class="bi bi-person-plus me-1"></i> Add Member
+  </button>
+</div>
 
-        <label><strong>Contact Type:</strong></label>
-        <select name="contact_type" class="form-select mb-2" required>
-          <option value="" disabled selected>Select type</option>
-          <option value="Email">Email</option>
-          <option value="Phone">Phone</option>
-          <option value="Address">Address</option>
-        </select>
-
-        <label><strong>Contact Value:</strong></label>
-        <input type="text" name="contact_value" class="form-control mb-2" placeholder="Enter contact info" required>
+<!-- Hidden Add Member Form -->
+<div id="add-member-form" class="mt-4" style="display: none;">
+  <form id="project-team-form" method="POST">
+    {% csrf_token %}
+    <div class="border p-4 rounded-3 shadow-sm bg-light">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="close-add-member-form" aria-label="Close"></button>
+      <h5 class="mb-3">Add New Team Member</h5>
+      <div class="mb-3">
+        <label class="form-label"><strong>Name:</strong></label>
+        <input type="text" id="name" name="name" class="form-control" placeholder="Enter name" required>
       </div>
+      <div class="mb-3">
+        <label class="form-label"><strong>Designation/Role:</strong></label>
+        <input type="text" id="designation" name="designation" class="form-control" placeholder="Enter designation or role" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label"><strong>Contact:</strong></label>
+        <input type="text" id="contact" name="contact" class="form-control" placeholder="Enter contact info" required>
+      </div>
+      <button type="submit" class="btn btn-success">Submit</button>
     </div>
-
-    <button type="button" id="add-member-btn" class="btn btn-secondary mb-3">Add Member</button>
-    <button type="submit" class="btn btn-primary">Submit Team Detail</button>
   </form>
+</div>
 
-  <script>
-  const container = document.getElementById('team-members-container');
-  const addBtn = document.getElementById('add-member-btn');
+<div class="project-info mt-4 p-3 border rounded">
+  <h5>Project Details</h5>
+  <p><strong>Start Time:</strong> {{ project.start_time|date:"F j, Y, g:i a" | default:"Not set"  }}</p>
+  <p><strong>End Time:</strong> {{ project.end_time|date:"F j, Y, g:i a" | default:"Not set" }}</p>
+  <p><strong>Budget:</strong> ${{ project.budget|floatformat:2 | default:"Not set" }}</p>
+</div>
 
-  // Function to create a new team member input block
-  function createTeamMemberBlock() {
-    const div = document.createElement('div');
-    div.className = 'team-member mb-4 border p-3 rounded';
-    div.innerHTML = `
-      <label><strong>Name:</strong></label>
-      <input type="text" name="name" class="form-control mb-2" placeholder="Enter name" required>
+<hr class="my-4">
 
-      <label><strong>Designation/Role:</strong></label>
-      <input type="text" name="designation" class="form-control mb-2" placeholder="Enter designation or role" required>
+<!-- Document List -->
+<h6 class="mt-4">Uploaded Documents</h6>
+<div class="table-responsive">
+  <table class="table table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>File</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="document-list">
+      {% for doc in leed_ip_documents %}
+        <tr data-id="{{ doc.id }}">
+          <td>{{ doc.id }}</td>
+          <td>{{ doc.title }}</td>
+          <td><a href="{{ doc.file.url }}" target="_blank">View File</a></td>
+          <td>
+            <button class="btn btn-danger btn-sm remove-document-btn">Remove</button>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
-      <label><strong>Contact Type:</strong></label>
-      <select name="contact_type" class="form-select mb-2" required>
-        <option value="" disabled selected>Select type</option>
-        <option value="Email">Email</option>
-        <option value="Phone">Phone</option>
-        <option value="Address">Address</option>
-      </select>
+<!-- Add Document Button -->
+<div class="d-flex justify-content-start mb-3">
+  <button class="btn btn-outline-primary" id="show-add-document-form">
+    <i class="bi bi-file-earmark-plus me-1"></i> Add Document
+  </button>
+</div>
 
-      <label><strong>Contact Value:</strong></label>
-      <input type="text" name="contact_value" class="form-control mb-2" placeholder="Enter contact info" required>
+<!-- Hidden Upload Form -->
+<div id="upload-document-container" style="display: none;">
+  <form id="document-upload-form" enctype="multipart/form-data" method="POST">
+    {% csrf_token %}
+    <div class="border p-4 rounded-3 shadow-sm bg-light">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="close-upload-document-form" aria-label="Close"></button>
+      <h5 class="mb-3">Upload Document</h5>
+      <div class="mb-3">
+        <label for="doc-title" class="form-label"><strong>Title</strong></label>
+        <input type="text" id="doc-title" name="title" class="form-control" placeholder="Enter document title" required>
+      </div>
 
-      <button type="button" class="btn btn-danger btn-sm remove-member-btn">Remove Member</button>
-    `;
-    return div;
-  }
+      <div class="mb-3">
+        <label for="doc-file" class="form-label"><strong>Select File</strong></label>
+        <input type="file" id="doc-file" name="file" class="form-control" required>
+      </div>
 
-  // Add new member block on button click
-  addBtn.addEventListener('click', () => {
-    const newMember = createTeamMemberBlock();
-    container.appendChild(newMember);
+      <input type="hidden" name="type" value="LEED IP">
+      <button type="submit" class="btn btn-success">Upload Document</button>
+    </div>
+  </form>
+</div>
 
-    // Add remove event for the new member block
-    newMember.querySelector('.remove-member-btn').addEventListener('click', () => {
-      newMember.remove();
-    });
+<script>
+<!--  Close button for both forms-->
+// Close add member form
+document.getElementById("close-add-member-form").addEventListener("click", function () {
+  document.getElementById("add-member-form").style.display = "none";
+  document.getElementById("show-add-member-form").style.display = "inline-block";
+});
+
+// Close upload document form
+document.getElementById("close-upload-document-form").addEventListener("click", function () {
+  document.getElementById("upload-document-container").style.display = "none";
+  document.getElementById("show-add-document-form").style.display = "inline-block";
+});
+
+  // Toggle add member form
+  document.getElementById("show-add-member-form").addEventListener("click", function () {
+    document.getElementById("add-member-form").style.display = "block";
+    this.style.display = "none"; // Hide the "Add Member" button once form is visible
   });
 
-  // Also add remove button event to first member block (if you want)
-  const firstRemoveBtn = document.querySelector('.remove-member-btn');
-  if (firstRemoveBtn) {
-    firstRemoveBtn.addEventListener('click', (e) => {
-      e.target.closest('.team-member').remove();
-    });
-  }
+  const form = document.getElementById('project-team-form');
+  const teamList = document.getElementById('team-members-list');
 
-  // Form submission
-  document.getElementById('project-team-form').addEventListener('submit', function(event) {
-    event.preventDefault();
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
 
-    const members = [];
-    const teamMemberDivs = container.querySelectorAll('.team-member');
+    // Show loading state
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    submitBtn.disabled = true;
 
-    for (const div of teamMemberDivs) {
-      const name = div.querySelector('input[name="name"]').value.trim();
-      const designation = div.querySelector('input[name="designation"]').value.trim();
-      const contactType = div.querySelector('select[name="contact_type"]').value;
-      const contactValue = div.querySelector('input[name="contact_value"]').value.trim();
-
-      if(!name || !designation || !contactType || !contactValue) {
-        alert('Please fill all fields for every team member.');
-        return;
+    const data = {
+      action: 'add_member',
+      member: {
+        name: form.name.value,
+        designation: form.designation.value,
+        contact: form.contact.value,
       }
+    };
 
-      members.push({
-        name,
-        designation,
-        contact: [
-          { type: contactType, value: contactValue }
-        ]
+    try {
+      const response = await fetch('', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data),
       });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        // Append new member to list
+        const row = document.createElement('tr');
+        row.dataset.id = result.member_id;
+        row.innerHTML = `
+          <td>${result.member_id}</td>
+          <td>${data.member.name}</td>
+          <td>${data.member.designation}</td>
+          <td>${data.member.contact}</td>
+          <td>
+            <button class="btn btn-danger btn-sm remove-member-btn">Remove</button>
+          </td>
+        `;
+        teamList.appendChild(row);
+
+        // Clear form inputs
+        form.reset();
+      } else {
+        alert('Failed to add member.');
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      // Reset the button
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
     }
+  });
 
-    // Here you would typically send `members` JSON data via AJAX or set a hidden input and submit normally
-    // For demo, just alert the JSON:
-    alert('Submitting team members:\n' + JSON.stringify(members, null, 2));
+  teamList.addEventListener('click', async e => {
+    if (e.target.classList.contains('remove-member-btn')) {
+      const row = e.target.closest('tr');
+      const memberId = row.dataset.id;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // TODO: send `members` data to backend via fetch/ajax or form submission
+      const response = await fetch('', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({ action: 'remove_member', member_id: memberId }),
+      });
 
-    // Reset form after submission if needed:
-    // this.reset();
-    // Or remove extra members, keep only one blank block:
-    while(container.children.length > 1) {
-      container.lastChild.remove();
+      const result = await response.json();
+      if (result.status === 'success') {
+        row.remove();  // Remove the <tr> row
+      } else {
+        alert('Failed to remove member.');
+      }
     }
-    container.querySelector('input[name="name"]').value = '';
-    container.querySelector('input[name="designation"]').value = '';
-    container.querySelector('select[name="contact_type"]').value = '';
-    container.querySelector('input[name="contact_value"]').value = '';
+  });
+
+
+  // Toggle document upload form
+  document.getElementById("show-add-document-form").addEventListener("click", function () {
+    document.getElementById("upload-document-container").style.display = "block";
+    this.style.display = "none"; // Hide "Add Document" button
+  });
+
+  // Document upload script
+  const docForm = document.getElementById('document-upload-form');
+  const docList = document.getElementById('document-list');
+
+  docForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const submitBtn = docForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    // Show loading state
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+    submitBtn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('action', 'upload_document');
+    formData.append('title', docForm.title.value);
+    formData.append('file', docForm.file.files[0]);
+    formData.append('type', 'LEED IP');
+
+    try {
+      const response = await fetch('', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        const row = document.createElement('tr');
+        row.dataset.id = result.document_id;
+        row.innerHTML = `
+          <td>${result.document_id}</td>
+          <td>${result.title}</td>
+          <td><a href="${result.file_url}" target="_blank">View File</a></td>
+          <td><button class="btn btn-danger btn-sm remove-document-btn">Remove</button></td>
+        `;
+        docList.appendChild(row);
+        docForm.reset();
+      } else {
+        alert('Document upload failed.');
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      alert('An error occurred during upload. Please try again.');
+    } finally {
+      // Reset button state
+      submitBtn.innerHTML = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+
+  docList.addEventListener('click', async e => {
+    if (e.target.classList.contains('remove-document-btn')) {
+      const row = e.target.closest('tr');
+      const documentId = row.dataset.id;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      const response = await fetch('', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify({action: 'remove_document', document_id: documentId}),
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        row.remove();
+      } else {
+        alert('Failed to remove document.');
+      }
+    }
   });
 </script>

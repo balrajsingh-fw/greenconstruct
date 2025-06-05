@@ -23,6 +23,9 @@ class Project(models.Model):
     expected_occupant_load = models.PositiveSmallIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    budget = models.FloatField(null=True,blank=True)
     current_step = models.PositiveSmallIntegerField(default=1)
 
     # Store raw data and AI insights as JSON
@@ -62,6 +65,7 @@ class BuildingType(models.Model):
 class Document(models.Model):
     project = models.ForeignKey(Project, related_name='documents', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
+    type = models.CharField(max_length=255, null=True,blank=True)
     file = models.FileField(upload_to='documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

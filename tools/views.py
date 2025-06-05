@@ -6,6 +6,7 @@ from difflib import get_close_matches
 from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import Material, Project, BuildingType, Document
 from .forms import *
 from google import genai
@@ -981,6 +982,9 @@ def project_create(request):
         formset = MaterialFormSet(request.POST)
         latitude = request.POST.get('latitude')
         longitude = request.POST.get('longitude')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        budget = request.POST.get('budget')
         city = request.POST.get("city")
         country = request.POST.get("country")
         building_type = request.POST.get("building_type")
@@ -1003,8 +1007,6 @@ def project_create(request):
                         'emission': round(emission, 2),
                     })
 
-            insight = generate_carbon_footprint_insight(breakdown, total_emission)
-
             project = Project.objects.create(
                 carbon_data=breakdown,
                 latitude=float(latitude),
@@ -1012,10 +1014,12 @@ def project_create(request):
                 city=city,
                 country=country,
                 building_type=building_type,
-                carbon_insight=insight,
                 name=name,
                 leed_certification=leed_certification,
                 well_certification=well_certification,
+                start_time=start_time,
+                end_time=end_time,
+                budget=budget,
                 current_step=2  # Step 1 done, move to step 2
             )
             return redirect('project_detail', project_id=project.id)
@@ -1027,25 +1031,104 @@ def project_create(request):
                    "building_types": building_types})
 
 
+@csrf_exempt  # Use only if you cannot pass CSRF properly in JS
 def project_detail(request, project_id):
     project = get_object_or_404(Project, id=project_id)
 
-    if request.method == 'POST':
-        team_form = ProjectTeamForm(request.POST)
-        if team_form.is_valid():
-            team_member = team_form.save(commit=False)
-            team_member.project = project
-            team_member.save()
-            return redirect('project_detail', project_id=project.id)
-    else:
-        team_form = ProjectTeamForm()
-    context = {
+    leed_ip_docs = Document.objects.filter(project=project, type='LEED IP')
+    # GET — render template with context
+    return render(request, 'projects/detail.html', {
         'project': project,
-        'team_form': team_form,
-        # add other context as needed
-    }
-    return render(request, 'projects/detail.html',
-                  context)
+        'leed_ip_documents': leed_ip_docs,
+    })
+
+
+def leed_documentation(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    leed_ip_docs = Document.objects.filter(project=project, type='LEED IP')
+    project_team = ProjectTeam.objects.filter(project=project)
+    if request.method == 'POST':
+        content_type = request.headers.get('Content-Type', '')
+
+        # JSON-based actions (team member add/remove, doc delete)
+        if content_type.startswith('application/json'):
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+            action = data.get('action')
+
+            if action == 'add_member':
+                member = data.get('member', {})
+                if all(member.get(field) for field in ['name', 'designation', 'contact']):
+                    team_member = ProjectTeam.objects.create(
+                        project=project,
+                        name=member['name'],
+                        designation=member['designation'],
+                        contact=member['contact']
+                    )
+                    return JsonResponse({'status': 'success', 'member_id': team_member.id})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid data'}, status=400)
+
+            elif action == 'remove_member':
+                member_id = data.get('member_id')
+                try:
+                    member = ProjectTeam.objects.get(id=member_id, project=project)
+                    member.delete()
+                    return JsonResponse({'status': 'success'})
+                except ProjectTeam.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Member not found'}, status=404)
+
+            elif action == 'remove_document':
+                document_id = data.get('document_id')
+                try:
+                    doc = Document.objects.get(id=document_id, project=project)
+                    doc.delete()
+                    return JsonResponse({'status': 'success'})
+                except Document.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Document not found'}, status=404)
+
+            return JsonResponse({'status': 'error', 'message': 'Invalid action'}, status=400)
+
+        # Handle file upload (multipart/form-data)
+        elif content_type.startswith('multipart/form-data'):
+            action = request.POST.get('action')
+            if action == 'upload_document':
+                title = request.POST.get('title')
+                file = request.FILES.get('file')
+                doc_type = request.POST.get('type')
+
+                if title and file and doc_type:
+                    doc = Document.objects.create(
+                        project=project,
+                        title=title,
+                        file=file,
+                        type=doc_type
+                    )
+                    return JsonResponse({
+                        'status': 'success',
+                        'document_id': doc.id,
+                        'title': doc.title,
+                        'file_url': doc.file.url
+                    })
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
+    return render(request, 'projects/leed_specs.html', {
+        'project': project,
+        'leed_ip_documents': leed_ip_docs,
+        'project_team': project_team
+    })
+
+
+def well_documentation(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    well_air_docs = Document.objects.filter(project=project, type='Air')
+    return render(request, 'projects/well_specs.html', {
+        'project': project,
+        'well_air_documents': well_air_docs,
+    })
 
 
 # List all projects
@@ -1169,9 +1252,10 @@ def project_gallery(request, project_id):
     if request.method == 'POST':
         title = request.POST.get('title')
         file = request.FILES.get('file')
+        file_type = "General"
 
         if title and file:
-            Document.objects.create(project=project, title=title, file=file)
+            Document.objects.create(project=project, title=title, file=file, type=file_type)
             messages.success(request, "Document uploaded successfully!")
             return redirect('project_gallery', project_id=project.id)
         else:
