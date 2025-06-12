@@ -50,6 +50,37 @@ class Project(models.Model):
     well_combined_forecasting = models.JSONField(null=True, blank=True)
     well_scorecard = models.JSONField(null=True, blank=True)
 
+    # Sensitive Land
+    previously_developed = models.CharField(max_length=3, blank=True, null=True)
+    floodplain = models.CharField(max_length=3, blank=True, null=True)
+    wetlands = models.CharField(max_length=3, blank=True, null=True)
+    prime_farmland = models.CharField(max_length=3, blank=True, null=True)
+
+    # High Priority
+    historic = models.CharField(max_length=3, blank=True, null=True)
+    brownfield = models.CharField(max_length=3, blank=True, null=True)
+    remediated = models.CharField(max_length=3, blank=True, null=True)
+
+    # Transit
+    transit_stops = models.CharField(max_length=200, blank=True, null=True)
+    transit_distance = models.CharField(max_length=100, blank=True, null=True)
+    transit_mode = models.CharField(max_length=100, blank=True, null=True)
+    weekday_trips = models.PositiveIntegerField(blank=True, null=True)
+    weekend_trips = models.PositiveIntegerField(blank=True, null=True)
+
+    # Bicycle
+    bike_short = models.PositiveIntegerField(blank=True, null=True)
+    bike_long = models.PositiveIntegerField(blank=True, null=True)
+    bike_network_distance = models.CharField(max_length=100, blank=True, null=True)
+    bike_showers = models.CharField(max_length=3, blank=True, null=True)
+
+    # Parking & EV
+    parking_spaces = models.PositiveIntegerField(blank=True, null=True)
+    zoning_req = models.PositiveIntegerField(blank=True, null=True)
+    carpool = models.CharField(max_length=3, blank=True, null=True)
+    ev_spots = models.PositiveIntegerField(blank=True, null=True)
+    green_vehicle = models.CharField(max_length=3, blank=True, null=True)
+
     def __int__(self):
         return self.id
 

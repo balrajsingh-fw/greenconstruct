@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from .models import Material, Project, BuildingType, Document
 from .forms import *
 from google import genai
@@ -1045,7 +1046,7 @@ def project_detail(request, project_id):
 
 def leed_documentation(request, project_id):
     project = get_object_or_404(Project, id=project_id)
-    leed_ip_docs = Document.objects.filter(project=project, type='LEED IP')
+    leed_docs = Document.objects.filter(project=project)
     project_team = ProjectTeam.objects.filter(project=project)
     if request.method == 'POST':
         content_type = request.headers.get('Content-Type', '')
@@ -1091,35 +1092,105 @@ def leed_documentation(request, project_id):
                     return JsonResponse({'status': 'error', 'message': 'Document not found'}, status=404)
 
             return JsonResponse({'status': 'error', 'message': 'Invalid action'}, status=400)
-
-        # Handle file upload (multipart/form-data)
-        elif content_type.startswith('multipart/form-data'):
-            action = request.POST.get('action')
-            if action == 'upload_document':
-                title = request.POST.get('title')
-                file = request.FILES.get('file')
-                doc_type = request.POST.get('type')
-
-                if title and file and doc_type:
-                    doc = Document.objects.create(
-                        project=project,
-                        title=title,
-                        file=file,
-                        type=doc_type
-                    )
-                    return JsonResponse({
-                        'status': 'success',
-                        'document_id': doc.id,
-                        'title': doc.title,
-                        'file_url': doc.file.url
-                    })
-                else:
-                    return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
     return render(request, 'projects/leed_specs.html', {
         'project': project,
-        'leed_ip_documents': leed_ip_docs,
+        'leed_documents': leed_docs,
         'project_team': project_team
     })
+
+
+@require_POST
+def submit_leed_docs(request):
+    content_type = request.headers.get('Content-Type', '')
+
+    # Get project by ID
+    project_id = request.POST.get("project_id") or json.loads(request.body.decode()).get("project_id")
+    project = get_object_or_404(Project, id=project_id)
+    project_team = ProjectTeam.objects.filter(project=project)
+
+    # Handle document upload
+    if content_type.startswith('multipart/form-data'):
+        action = request.POST.get('action')
+        if action == 'upload_document':
+            title = request.POST.get('title')
+            file = request.FILES.get('file')
+            doc_type = request.POST.get('type')
+
+            if title and file and doc_type:
+                doc = Document.objects.create(
+                    project=project,
+                    title=title,
+                    file=file,
+                    type=doc_type
+                )
+                return JsonResponse({
+                    'status': 'success',
+                    'document_id': doc.id,
+                    'title': doc.title,
+                    'file_url': doc.file.url
+                })
+
+            return JsonResponse({'status': 'error', 'message': 'Missing fields'}, status=400)
+
+    # Handle document removal
+    elif content_type == 'application/json':
+        try:
+            data = json.loads(request.body.decode())
+            if data.get('action') == 'remove_document':
+                doc_id = data.get('document_id')
+                doc = Document.objects.filter(id=doc_id, project=project).first()
+                if doc:
+                    doc.delete()
+                    return JsonResponse({'status': 'success'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Document not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request type'}, status=400)
+
+@require_POST
+def submit_l_n_t_form(request):
+    try:
+        project_id = request.POST.get('project_id')
+        project = get_object_or_404(Project, id=project_id)
+
+        # Sensitive Land Protection
+        project.previously_developed = request.POST.get('previously_developed')
+        project.floodplain = request.POST.get('floodplain')
+        project.wetlands = request.POST.get('wetlands')
+        project.prime_farmland = request.POST.get('prime_farmland')
+
+        # High Priority Site
+        project.historic = request.POST.get('historic')
+        project.brownfield = request.POST.get('brownfield')
+        project.remediated = request.POST.get('remediated')
+
+        # Transit
+        project.transit_stops = request.POST.get('transit_stops')
+        project.transit_distance = request.POST.get('transit_distance')
+        project.transit_mode = request.POST.get('transit_mode')
+        project.weekday_trips = request.POST.get('weekday_trips') or 0
+        project.weekend_trips = request.POST.get('weekend_trips') or 0
+
+        # Bicycle
+        project.bike_short = request.POST.get('bike_short') or 0
+        project.bike_long = request.POST.get('bike_long') or 0
+        project.bike_network_distance = request.POST.get('bike_network_distance')
+        project.bike_showers = request.POST.get('bike_showers')
+
+        # Parking & EV
+        project.parking_spaces = request.POST.get('parking_spaces') or 0
+        project.zoning_req = request.POST.get('zoning_req') or 0
+        project.carpool = request.POST.get('carpool')
+        project.ev_spots = request.POST.get('ev_spots') or 0
+        project.green_vehicle = request.POST.get('green_vehicle')
+
+        project.save()
+
+        return JsonResponse({'success': True, 'message': 'LEED form saved successfully.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 
 def well_documentation(request, project_id):

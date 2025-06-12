@@ -69,5 +69,107 @@
     }
   });
 </script>
+
+<!--Documents upload JS-->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const submitUrl = "{% url 'submit_leed_docs' %}";
+  const projectId = "{{ project.id }}";  // Ensure `project` is passed in context
+
+  document.querySelectorAll('.show-add-document-form').forEach(button => {
+    button.addEventListener('click', () => {
+      const section = button.dataset.section;
+      document.getElementById(`${section}-upload-document-container`).style.display = 'block';
+      button.style.display = 'none';
+    });
+  });
+
+  document.querySelectorAll('.close-upload-document-form').forEach(button => {
+    button.addEventListener('click', () => {
+      const form = button.closest('.upload-document-container');
+      form.style.display = 'none';
+      const section = form.id.replace('-upload-document-container', '');
+      document.querySelector(`[data-section="${section}"]`).style.display = 'inline-block';
+    });
+  });
+
+  document.querySelectorAll('.document-upload-form').forEach(form => {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const section = form.dataset.section;
+      const list = document.getElementById(`${section}-document-list`);
+      const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+      const btn = form.querySelector('button[type=submit]');
+      const originalText = btn.innerHTML;
+
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+      btn.disabled = true;
+
+      const formData = new FormData(form);
+      formData.append('action', 'upload_document');
+      formData.append('project_id', projectId);
+
+      try {
+        const res = await fetch(submitUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf },
+          body: formData,
+        });
+
+        const result = await res.json();
+        if (result.status === 'success') {
+          const row = document.createElement('tr');
+          row.dataset.id = result.document_id;
+          row.innerHTML = `
+            <td>${result.document_id}</td>
+            <td>${result.title}</td>
+            <td><a href="${result.file_url}" target="_blank">View File</a></td>
+            <td><button class="btn btn-danger btn-sm remove-document-btn">Remove</button></td>`;
+          list.appendChild(row);
+          form.reset();
+        } else {
+          alert(result.message || 'Upload failed.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Upload error. Try again.');
+      } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('tbody').forEach(tbody => {
+    tbody.addEventListener('click', async e => {
+      if (e.target.classList.contains('remove-document-btn')) {
+        const row = e.target.closest('tr');
+        const docId = row.dataset.id;
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        const res = await fetch(submitUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf,
+          },
+          body: JSON.stringify({
+            action: 'remove_document',
+            document_id: docId,
+            project_id: projectId
+          }),
+        });
+
+        const result = await res.json();
+        if (result.status === 'success') {
+          row.remove();
+        } else {
+          alert(result.message || 'Delete failed.');
+        }
+      }
+    });
+  });
+});
+</script>
 {% endblock %}
 

@@ -1,2 +1,207 @@
-        <h6>Location and Transport (LT)</h6>
-        <p>Information related to site accessibility, alternative transportation, etc.</p>
+
+<div class="max-w-3xl mx-auto px-6 py-8 bg-white rounded-xl shadow-md">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6">Location and Transport (LT)</h1>
+
+  <form id="leed-form" class="space-y-8">
+    {% csrf_token %}
+
+    <!-- Section: Sensitive Land Protection -->
+    <section>
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b pb-1">Sensitive Land Protection</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium">Previously Developed?</label>
+          <select name="previously_developed" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.previously_developed == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.previously_developed == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Located in Floodplain?</label>
+          <select name="floodplain" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.floodplain == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.floodplain == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Near Wetlands/Water Body?</label>
+          <select name="wetlands" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.wetlands == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.wetlands == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Prime Farmland?</label>
+          <select name="prime_farmland" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.prime_farmland == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.prime_farmland == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: High Priority Site -->
+    <section>
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b pb-1">High Priority Site</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium">Historic District?</label>
+          <select name="historic" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.historic == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.historic == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Brownfield?</label>
+          <select name="brownfield" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.brownfield == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.brownfield == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium">Remediation Complete?</label>
+          <select name="remediated" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.remediated == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.remediated == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Access to Quality Transit -->
+    <section>
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b pb-1">Access to Quality Transit</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium">Transit Stops Nearby</label><input type="text" name="transit_stops" value="{{ project.transit_stops }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Distance to Transit</label><input type="text" name="transit_distance" value="{{ project.transit_distance }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Transit Mode</label><input type="text" name="transit_mode" value="{{ project.transit_mode }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Weekday Trips</label><input type="number" name="weekday_trips" value="{{ project.weekday_trips }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Weekend Trips</label><input type="number" name="weekend_trips" value="{{ project.weekend_trips }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+      </div>
+    </section>
+
+    <!-- Section: Bicycle Facilities -->
+    <section>
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b pb-1">Bicycle Facilities</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium">Bike Parking (Short-term)</label><input type="number" name="bike_short" value="{{ project.bike_short }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Bike Parking (Long-term)</label><input type="number" name="bike_long" value="{{ project.bike_long }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Distance to Bike Network</label><input type="text" name="bike_network_distance" value="{{ project.bike_network_distance }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div>
+          <label class="block text-sm font-medium">Shower/Changing Rooms?</label>
+          <select name="bike_showers" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.bike_showers == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.bike_showers == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Parking & Green Vehicles -->
+    <section>
+      <h2 class="text-xl font-semibold text-blue-700 mb-4 border-b pb-1">Parking & Green Vehicles</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div><label class="block text-sm font-medium">Total Parking Spaces</label><input type="number" name="parking_spaces" value="{{ project.parking_spaces }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div><label class="block text-sm font-medium">Zoning Requirement</label><input type="number" name="zoning_req" value="{{ project.zoning_req }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div>
+          <label class="block text-sm font-medium">Carpool/Vanpool Parking?</label>
+          <select name="carpool" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.carpool == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.carpool == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div><label class="block text-sm font-medium">EV Charging Spots</label><input type="number" name="ev_spots" value="{{ project.ev_spots }}" class="form-input w-full mt-1 border-gray-300 rounded-md" /></div>
+        <div>
+          <label class="block text-sm font-medium">Green Vehicle Parking?</label>
+          <select name="green_vehicle" class="form-select w-full mt-1 border-gray-300 rounded-md">
+            <option {% if project.green_vehicle == "Yes" %}selected{% endif %}>Yes</option>
+            <option {% if project.green_vehicle == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <input type="hidden" name="project_id" value="{{ project.id }}">
+
+    <div class="pt-6">
+      <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring focus:ring-blue-300 transition duration-200">
+        Submit
+      </button>
+    </div>
+  </form>
+</div>
+{% include "projects/upload_documents.html" with documents=leed_documents section_id="leed_lt" document_type="LEED LT" %}
+<!--Submit the form-->
+<script>
+document.getElementById('leed-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const csrftoken = getCookie('csrftoken');
+
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+
+    // Set loading state
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    submitBtn.disabled = true;
+
+    try {
+        const response = await fetch("{% url 'submit_l_n_t_form' %}", {
+            method: "POST",
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        showPopover(result.message, result.success);
+    } catch (err) {
+        console.error(err);
+        showPopover("Submission failed. Try again.", false);
+    } finally {
+        // Restore button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function showPopover(message, success) {
+    const existing = document.getElementById('form-popover');
+    if (existing) existing.remove();
+
+    const popover = document.createElement('div');
+    popover.id = 'form-popover';
+    popover.innerText = message;
+    popover.style.position = 'fixed';
+    popover.style.bottom = '20px';
+    popover.style.right = '20px';
+    popover.style.padding = '12px 20px';
+    popover.style.backgroundColor = success ? '#38a169' : '#e53e3e';
+    popover.style.color = 'white';
+    popover.style.borderRadius = '8px';
+    popover.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    popover.style.zIndex = 1000;
+
+    document.body.appendChild(popover);
+    setTimeout(() => popover.remove(), 4000);
+}
+</script>

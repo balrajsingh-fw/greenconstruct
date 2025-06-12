@@ -23,10 +23,6 @@
               <p>{{ project.building_type }}</p>
             </div>
             <div class="col-md-6">
-              <p class="mb-1 text-muted fw-semibold">Location</p>
-              <p>{{ project.city }}, {{ project.country }}</p>
-            </div>
-            <div class="col-md-6">
               <p class="mb-1 text-muted fw-semibold">Coordinates</p>
               <p>{{ project.latitude }}, {{ project.longitude }}</p>
             </div>
@@ -50,6 +46,16 @@
               <p class="mb-1 text-muted fw-semibold">Budget</p>
               <p>${{ project.budget|floatformat:2 }}</p>
             </div>
+                        <div class="col-md-6">
+              <p class="mb-1 text-muted fw-semibold">Location</p>
+              <p>{{ project.city }}, {{ project.country }}</p>
+            </div>
+
+            <div id="map" style="height: 450px; width: 100%;"></div>
+<input type="hidden" id="id_latitude" name="latitude" value="{{ project.latitude }}">
+<input type="hidden" id="id_longitude" name="longitude" value="{{ project.longitude }}">
+<input type="hidden" id="id_city" name="city" value="{{ project.city }}">
+<input type="hidden" id="id_country" name="country" value="{{ project.country }}">
           </div>
         </div>
       </div>
@@ -58,4 +64,39 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+  // Your map code here, exactly as you wrote it
+  const savedLat = parseFloat(document.getElementById('id_latitude').value);
+  const savedLng = parseFloat(document.getElementById('id_longitude').value);
+  const savedCity = document.getElementById('id_city').value;
+  const savedCountry = document.getElementById('id_country').value;
+  const displayAddress = savedCity && savedCountry ? `${savedCity}, ${savedCountry}` : 'Saved Location';
+
+  const map = L.map('map').setView([savedLat, savedLng], 10);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+  }).addTo(map);
+
+  const customIcon = L.divIcon({
+    html: '<i class="fas fa-map-marker-alt" style="color: #667eea; font-size: 24px;"></i>',
+    iconSize: [24, 24],
+    iconAnchor: [12, 24],
+    className: 'custom-div-icon'
+  });
+
+  const marker = L.marker([savedLat, savedLng], { icon: customIcon }).addTo(map);
+
+  document.getElementById('id_address_display').value = displayAddress;
+
+  marker.bindPopup(`
+    <div class="text-center p-2">
+      <i class="fas fa-map-marker-alt text-primary mb-2" style="font-size: 20px;"></i>
+      <br><strong>${displayAddress}</strong>
+    </div>
+  `).openPopup();
+});
+</script>
 {% endblock %}

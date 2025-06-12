@@ -73,75 +73,13 @@
 
 <hr class="my-4">
 
-<!-- Document List -->
-<h6 class="mt-4">Uploaded Documents</h6>
-<div class="table-responsive">
-  <table class="table table-bordered align-middle">
-    <thead class="table-light">
-      <tr>
-        <th>ID</th>
-        <th>Title</th>
-        <th>File</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody id="document-list">
-      {% for doc in leed_ip_documents %}
-        <tr data-id="{{ doc.id }}">
-          <td>{{ doc.id }}</td>
-          <td>{{ doc.title }}</td>
-          <td><a href="{{ doc.file.url }}" target="_blank">View File</a></td>
-          <td>
-            <button class="btn btn-danger btn-sm remove-document-btn">Remove</button>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<!-- Add Document Button -->
-<div class="d-flex justify-content-start mb-3">
-  <button class="btn btn-outline-primary" id="show-add-document-form">
-    <i class="bi bi-file-earmark-plus me-1"></i> Add Document
-  </button>
-</div>
-
-<!-- Hidden Upload Form -->
-<div id="upload-document-container" style="display: none;">
-  <form id="document-upload-form" enctype="multipart/form-data" method="POST">
-    {% csrf_token %}
-    <div class="border p-4 rounded-3 shadow-sm bg-light">
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="close-upload-document-form" aria-label="Close"></button>
-      <h5 class="mb-3">Upload Document</h5>
-      <div class="mb-3">
-        <label for="doc-title" class="form-label"><strong>Title</strong></label>
-        <input type="text" id="doc-title" name="title" class="form-control" placeholder="Enter document title" required>
-      </div>
-
-      <div class="mb-3">
-        <label for="doc-file" class="form-label"><strong>Select File</strong></label>
-        <input type="file" id="doc-file" name="file" class="form-control" required>
-      </div>
-
-      <input type="hidden" name="type" value="LEED IP">
-      <button type="submit" class="btn btn-success">Upload Document</button>
-    </div>
-  </form>
-</div>
-
+{% include "projects/upload_documents.html" with documents=leed_documents section_id="leed-ip" document_type="LEED IP" %}
 <script>
 <!--  Close button for both forms-->
 // Close add member form
 document.getElementById("close-add-member-form").addEventListener("click", function () {
   document.getElementById("add-member-form").style.display = "none";
   document.getElementById("show-add-member-form").style.display = "inline-block";
-});
-
-// Close upload document form
-document.getElementById("close-upload-document-form").addEventListener("click", function () {
-  document.getElementById("upload-document-container").style.display = "none";
-  document.getElementById("show-add-document-form").style.display = "inline-block";
 });
 
   // Toggle add member form
@@ -238,87 +176,5 @@ document.getElementById("close-upload-document-form").addEventListener("click", 
   });
 
 
-  // Toggle document upload form
-  document.getElementById("show-add-document-form").addEventListener("click", function () {
-    document.getElementById("upload-document-container").style.display = "block";
-    this.style.display = "none"; // Hide "Add Document" button
-  });
 
-  // Document upload script
-  const docForm = document.getElementById('document-upload-form');
-  const docList = document.getElementById('document-list');
-
-  docForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const submitBtn = docForm.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-
-    // Show loading state
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
-    submitBtn.disabled = true;
-
-    const formData = new FormData();
-    formData.append('action', 'upload_document');
-    formData.append('title', docForm.title.value);
-    formData.append('file', docForm.file.files[0]);
-    formData.append('type', 'LEED IP');
-
-    try {
-      const response = await fetch('', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': csrftoken
-        },
-        body: formData,
-      });
-
-      const result = await response.json();
-      if (result.status === 'success') {
-        const row = document.createElement('tr');
-        row.dataset.id = result.document_id;
-        row.innerHTML = `
-          <td>${result.document_id}</td>
-          <td>${result.title}</td>
-          <td><a href="${result.file_url}" target="_blank">View File</a></td>
-          <td><button class="btn btn-danger btn-sm remove-document-btn">Remove</button></td>
-        `;
-        docList.appendChild(row);
-        docForm.reset();
-      } else {
-        alert('Document upload failed.');
-      }
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      alert('An error occurred during upload. Please try again.');
-    } finally {
-      // Reset button state
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-
-  docList.addEventListener('click', async e => {
-    if (e.target.classList.contains('remove-document-btn')) {
-      const row = e.target.closest('tr');
-      const documentId = row.dataset.id;
-      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-      const response = await fetch('', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({action: 'remove_document', document_id: documentId}),
-      });
-
-      const result = await response.json();
-      if (result.status === 'success') {
-        row.remove();
-      } else {
-        alert('Failed to remove document.');
-      }
-    }
-  });
 </script>
