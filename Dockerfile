@@ -21,7 +21,7 @@ COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Expose the port
-EXPOSE 3003
+EXPOSE 8041
 
 # Start the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
