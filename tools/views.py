@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import datetime
+from django.forms.models import model_to_dict
 
 from difflib import get_close_matches
 from django.shortcuts import render, get_object_or_404, redirect
@@ -201,6 +202,7 @@ def dashboard(request):
     })
 
 def generate_leed_certification_insight(project):
+    project_dict = model_to_dict(project)
     # Gather existing insights from project
     carbon = project.carbon_insight or {}
     waste = project.waste_insight or {}
@@ -214,12 +216,15 @@ def generate_leed_certification_insight(project):
                 insight = json.loads(insight)
             except:
                 insight = {}
+    project_dict.pop("carbon_insight", None)
+    project_dict.pop("waste_insight", None)
+    project_dict.pop("design_insight", None)
 
     # Compose the prompt with all insights embedded
     prompt = f"""
     You are an AI assistant helping companies find their LEED v5 certification score for LEED v5 certificate tasked with generating a combined insight and forecasting for a construction project.
 
-    You are required to provide proper LEED v5 certification analysis for the following project:{project}
+    You are required to provide proper LEED v5 certification analysis for the following project:{project_dict}
     
     Please analyze all data and provide a combined JSON output with:
     
@@ -737,12 +742,16 @@ def generate_well_certification_insight(project):
                 insight = json.loads(insight)
             except:
                 insight = {}
+    project_dict = model_to_dict(project)
+    project_dict.pop("carbon_insight", None)
+    project_dict.pop("waste_insight", None)
+    project_dict.pop("design_insight", None)
 
     # Compose the prompt with all insights embedded
     prompt = f"""
     You are an AI assistant helping companies find their WELL v2 Building Standard certification score for WELL v2 certificate tasked with generating a combined insight and forecasting for a construction project.
 
-    You are required to provide proper WELL certification analysis for the following project:{project}
+    You are required to provide proper WELL certification analysis for the following project:{project_dict}
 
     Please analyze all data and provide a combined JSON output with:
 
