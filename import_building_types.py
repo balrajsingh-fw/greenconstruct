@@ -3,7 +3,7 @@ import django
 import csv
 
 # Set up Django environment
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "yourproject.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "greenconstruct.settings")
 django.setup()
 
 from tools.models import BuildingType

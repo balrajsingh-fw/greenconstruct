@@ -2,7 +2,7 @@ import os
 import django
 import csv
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "yourproject.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "greenconstruct.settings")
 django.setup()
 
 from tools.models import Material
